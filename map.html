@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TariffScope - Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+<style>
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  color: white;
+  display: flex;
+}
+
+.sidebar {
+  width: 230px;
+  height: 100vh;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar h2 {
+  color: #00e5ff;
+  text-shadow: 0 0 10px #00e5ff;
+}
+
+.sidebar a {
+  display: block;
+  margin: 18px 0;
+  color: #aaa;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+  color: #00e5ff;
+  transform: translateX(5px);
+}
+
+.main {
+  flex: 1;
+  padding: 30px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(0,229,255,0.3);
+}
+
+.card h3 {
+  color: #00e5ff;
+}
+
+#map {
+  height: 600px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+  margin-top: 20px;
+}
+
+.map-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.map-controls select, .map-controls button {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.map-controls button {
+  background: linear-gradient(90deg, #00e5ff, #00ff9c);
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.map-controls button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px #00e5ff;
+}
+
+.fade-in {
+  animation: fade 1s ease-in;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.legend {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 8px;
+  z-index: 1000;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <h2>TariffScope</h2>
+  <a href="index.html">Dashboard</a>
+  <a href="analyzer.html">Analyzer</a>
+  <a href="simulation.html">Simulation</a>
+  <a href="map.html" class="active">Map</a>
+  <a href="insights.html">Insights</a>
+</div>
+
+<div class="main fade-in">
+
+  <h1>GeoTrade Map</h1>
+
+  <div class="card">
+    <h3>Interactive Trade Risk Map</h3>
+    <p>Explore global tariff risks and trade relationships. Click on country markers for detailed information.</p>
+
+    <div class="map-controls">
+      <select id="mapStyle">
+        <option value="dark">Dark Theme</option>
+        <option value="light">Light Theme</option>
+        <option value="satellite">Satellite</option>
+      </select>
+      <button onclick="resetView()">Reset View</button>
+      <button onclick="showHighRisk()">High Risk Only</button>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ff4d4d;"></div>
+        <span>High Risk (>70)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ffd700;"></div>
+        <span>Medium Risk (50-70)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #00ff9c;"></div>
+        <span>Low Risk (<50)</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Leaflet Map with enhanced features
+let map;
+let markers = [];
+let tileLayers = {};
+
+function initMap() {
+  map = L.map('map').setView([20, 10], 2);
+
+  // Different map styles
+  tileLayers.dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; CartoDB',
+  });
+
+  tileLayers.light = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+  });
+
+  tileLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+  });
+
+  tileLayers.dark.addTo(map);
+}
+
+// Country data with coordinates and trade relationships
+const countries = [
+  { name: 'India', lat: 20.5937, lng: 78.9629, tariff: 12, risk: 65, exports: ['Electronics', 'Steel'], imports: ['Oil', 'Machinery'] },
+  { name: 'China', lat: 35.8617, lng: 104.1954, tariff: 18, risk: 82, exports: ['Electronics', 'Steel'], imports: ['Oil', 'Agriculture'] },
+  { name: 'United Kingdom', lat: 55.3781, lng: -3.4360, tariff: 8, risk: 45, exports: ['Pharmaceuticals', 'Machinery'], imports: ['Electronics', 'Oil'] },
+  { name: 'Russia', lat: 61.5240, lng: 105.3188, tariff: 15, risk: 71, exports: ['Oil', 'Steel'], imports: ['Machinery', 'Electronics'] },
+  { name: 'Japan', lat: 36.2048, lng: 138.2529, tariff: 10, risk: 58, exports: ['Electronics', 'Machinery'], imports: ['Oil', 'Steel'] },
+  { name: 'Australia', lat: -25.2744, lng: 133.7751, tariff: 7, risk: 38, exports: ['Agriculture', 'Mining'], imports: ['Electronics', 'Machinery'] }
+];
+
+function addCountryMarkers() {
+  countries.forEach(country => {
+    const color = country.risk > 70 ? '#ff4d4d' : country.risk > 50 ? '#ffd700' : '#00ff9c';
+    const marker = L.circleMarker([country.lat, country.lng], {
+      radius: 8 + (country.risk / 20),
+      fillColor: color,
+      color: '#fff',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.8
+    });
+
+    marker.bindPopup(`
+      <b>${country.name}</b><br/>
+      <strong>Tariff:</strong> ${country.tariff}%<br/>
+      <strong>Risk Score:</strong> ${country.risk}<br/>
+      <strong>Major Exports:</strong> ${country.exports.join(', ')}<br/>
+      <strong>Major Imports:</strong> ${country.imports.join(', ')}
+    `);
+
+    marker.addTo(map);
+    markers.push(marker);
+  });
+}
+
+function resetView() {
+  map.setView([20, 10], 2);
+}
+
+function showHighRisk() {
+  const highRiskCountries = countries.filter(c => c.risk > 70);
+  if (highRiskCountries.length > 0) {
+    const bounds = L.latLngBounds(highRiskCountries.map(c => [c.lat, c.lng]));
+    map.fitBounds(bounds, { padding: [20, 20] });
+  }
+}
+
+// Map style changer
+document.getElementById('mapStyle').addEventListener('change', function(e) {
+  const style = e.target.value;
+
+  // Remove current layer
+  map.eachLayer(function(layer) {
+    if (layer instanceof L.TileLayer) {
+      map.removeLayer(layer);
+    }
+  });
+
+  // Add new layer
+  tileLayers[style].addTo(map);
+});
+
+// Initialize map when page loads
+window.addEventListener('load', function() {
+  initMap();
+  addCountryMarkers();
+});
+
+</script>
+
+</body>
+</html>

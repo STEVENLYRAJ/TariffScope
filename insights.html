@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TariffScope - Insights</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+<style>
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  color: white;
+  display: flex;
+}
+
+.sidebar {
+  width: 230px;
+  height: 100vh;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar h2 {
+  color: #00e5ff;
+  text-shadow: 0 0 10px #00e5ff;
+}
+
+.sidebar a {
+  display: block;
+  margin: 18px 0;
+  color: #aaa;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+  color: #00e5ff;
+  transform: translateX(5px);
+}
+
+.main {
+  flex: 1;
+  padding: 30px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: 0.3s;
+  margin-bottom: 20px;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(0,229,255,0.3);
+}
+
+.card h3 {
+  color: #00e5ff;
+}
+
+.chart-box {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(10px);
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.insight-metric {
+  text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  margin-bottom: 15px;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #00e5ff;
+  display: block;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: 5px;
+}
+
+.trend {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.trend.up { background: #00ff9c; color: #000; }
+.trend.down { background: #ff4d4d; color: #fff; }
+
+.fade-in {
+  animation: fade 1s ease-in;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0, 229, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #00e5ff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-content p {
+  margin-top: 20px;
+  color: #00e5ff;
+  font-weight: bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <h2>TariffScope</h2>
+  <a href="index.html">Dashboard</a>
+  <a href="analyzer.html">Analyzer</a>
+  <a href="simulation.html">Simulation</a>
+  <a href="map.html">Map</a>
+  <a href="insights.html" class="active">Insights</a>
+</div>
+
+<div class="main fade-in">
+
+  <h1>Trade Insights & Analytics</h1>
+
+  <div class="insights-grid">
+    <div class="card">
+      <h3>Global Risk Overview</h3>
+      <div class="insight-metric">
+        <span class="metric-value">72</span>
+        <span class="metric-label">Average Risk Score</span>
+        <span class="trend up">+5.2%</span>
+      </div>
+      <div class="insight-metric">
+        <span class="metric-value">6</span>
+        <span class="metric-label">Countries Monitored</span>
+        <span class="trend up">+2</span>
+      </div>
+      <div class="insight-metric">
+        <span class="metric-value">$2.4T</span>
+        <span class="metric-label">Trade Volume at Risk</span>
+        <span class="trend down">-8.1%</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Top Risk Factors</h3>
+      <div class="chart-box">
+        <canvas id="riskFactorsChart" style="max-height: 250px;"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Sector Vulnerability</h3>
+      <div class="chart-box">
+        <canvas id="sectorVulnerabilityChart" style="max-height: 250px;"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Regional Analysis</h3>
+      <div class="chart-box">
+        <canvas id="regionalChart" style="max-height: 250px;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Key Insights</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div>
+        <h4 style="color: #00ff9c;">📈 Opportunities</h4>
+        <ul style="color: #aaa; line-height: 1.6;">
+          <li>Electronics sector shows resilience despite tariffs</li>
+          <li>UK market presents low-risk entry opportunities</li>
+          <li>Agricultural exports to China remain stable</li>
+          <li>Digital services bypass traditional tariff barriers</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color: #ff4d4d;">⚠️ Risks & Challenges</h4>
+        <ul style="color: #aaa; line-height: 1.6;">
+          <li>Steel industry faces critical supply chain disruption</li>
+          <li>Russian sanctions impact European trade routes</li>
+          <li>Pharmaceutical tariffs threaten medical supply chains</li>
+          <li>Oil price volatility affects global transportation costs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Recommendations</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+      <div style="padding: 15px; background: rgba(0, 229, 255, 0.1); border-radius: 8px;">
+        <h5 style="color: #00e5ff; margin: 0 0 10px 0;">Immediate Actions</h5>
+        <p style="color: #aaa; margin: 0; font-size: 14px;">Diversify suppliers and explore alternative markets in Southeast Asia</p>
+      </div>
+      <div style="padding: 15px; background: rgba(0, 255, 156, 0.1); border-radius: 8px;">
+        <h5 style="color: #00ff9c; margin: 0 0 10px 0;">Strategic Planning</h5>
+        <p style="color: #aaa; margin: 0; font-size: 14px;">Invest in domestic manufacturing capabilities for critical sectors</p>
+      </div>
+      <div style="padding: 15px; background: rgba(255, 215, 0, 0.1); border-radius: 8px;">
+        <h5 style="color: #ffd700; margin: 0 0 10px 0;">Monitoring Focus</h5>
+        <p style="color: #aaa; margin: 0; font-size: 14px;">Track policy changes in major trading partners weekly</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Loading Animation
+function showLoadingOverlay(duration = 2000) {
+  const overlay = document.createElement('div');
+  overlay.className = 'loading-overlay';
+  overlay.innerHTML = '<div class="loading-content"><div class="loading"></div><p>Loading Insights...</p></div>';
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.remove(), duration);
+}
+
+// Charts with Tooltips
+const chartOptions = {
+  responsive: true,
+  plugins: {
+    legend: { labels: { color: '#aaa' } },
+    tooltip: {
+      backgroundColor: 'rgba(0, 229, 255, 0.9)',
+      titleColor: '#fff',
+      bodyColor: '#fff',
+      borderColor: '#00e5ff',
+      borderWidth: 2,
+      padding: 15,
+      displayColors: true
+    }
+  },
+  scales: {
+    y: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+    x: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+  }
+};
+
+// Risk Factors Chart
+new Chart(document.getElementById("riskFactorsChart"), {
+  type: "doughnut",
+  data: {
+    labels: ["Tariff Changes", "Supply Chain", "Currency Volatility", "Policy Uncertainty"],
+    datasets: [{
+      data: [35, 25, 20, 20],
+      backgroundColor: ["#ff4d4d", "#ffd700", "#00e5ff", "#00ff9c"],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        labels: { color: '#aaa' },
+        position: 'bottom'
+      }
+    }
+  }
+});
+
+// Sector Vulnerability Chart
+new Chart(document.getElementById("sectorVulnerabilityChart"), {
+  type: "radar",
+  data: {
+    labels: ["Electronics", "Steel", "Agriculture", "Pharmaceuticals"],
+    datasets: [{
+      label: "Vulnerability Score",
+      data: [65, 85, 45, 70],
+      borderColor: "#00e5ff",
+      backgroundColor: "rgba(0, 229, 255, 0.1)",
+      pointBackgroundColor: "#00e5ff",
+      pointBorderColor: "#fff",
+      pointRadius: 6
+    }]
+  },
+  options: chartOptions
+});
+
+// Regional Analysis Chart
+new Chart(document.getElementById("regionalChart"), {
+  type: "bar",
+  data: {
+    labels: ["Asia", "Europe", "Americas", "Oceania"],
+    datasets: [{
+      label: "Trade Risk Index",
+      data: [78, 52, 45, 38],
+      backgroundColor: ["#ff4d4d", "#ffd700", "#00ff9c", "#00e5ff"],
+      borderRadius: 8
+    }]
+  },
+  options: {
+    ...chartOptions,
+    scales: {
+      y: {
+        ...chartOptions.scales.y,
+        beginAtZero: true,
+        max: 100
+      },
+      x: chartOptions.scales.x
+    }
+  }
+});
+
+// Initialize page
+window.addEventListener('load', () => {
+  showLoadingOverlay(1500);
+});
+
+</script>
+
+</body>
+</html>
