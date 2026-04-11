@@ -44,7 +44,10 @@ def dashboard():
         "trade_volume": [100, 88, 82, 95, 108, 120, 112, 90]
     }
 
-from nlp import analyze_article
+try:
+    from .nlp import analyze_article
+except ImportError:
+    from nlp import analyze_article
 
 @app.get("/analyze")
 def analyze(text: str):
