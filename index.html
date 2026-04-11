@@ -194,6 +194,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
  
 <script>
 setInterval(()=>{const d=new Date();document.getElementById('clk').textContent=d.toUTCString().split(' ')[4]+' UTC';},1000);
+
+const API_BASE='http://127.0.0.1:8000';
+
+async function fetchDashboardData(){
+  try{
+    const res=await fetch(`${API_BASE}/dashboard`);
+    const data=await res.json();
+    document.getElementById('m2').textContent=data.global_exposure_index ?? 74.1;
+    document.getElementById('sigcount').textContent=(data.trade_volume||[]).length || 47;
+  }catch(e){console.error('Dashboard fetch failed',e);}
+}
  
 const countries=[
   {f:'🇮🇳',n:'India',i:'−0.4% GDP',t:'26%',c:'#F59E0B',ac:true,bg:'rgba(245,158,11,.12)',bb:'rgba(245,158,11,.3)',badge:'MODERATE'},
@@ -235,6 +246,7 @@ function renderFeed(sigs){
   });
 }
 renderFeed(baseFeed);
+fetchDashboardData();
  
 const liveTicks=[
   {t:'bear',tx:'US finalizes auto tariff to 25% — Tata Motors, Mahindra supply chains under review'},

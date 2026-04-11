@@ -208,6 +208,11 @@ canvas{display:block}
   </div>
 </div>
  
+<div class="card">
+  <div class="chdr"><div class="ctitle">Live API Simulation</div><div class="ctag">/simulate</div></div>
+  <div style="padding:var(--sp3)" id="api-feedback">Waiting for backend simulation data...</div>
+</div>
+ 
 <!-- VERDICT + SCENARIO COMPARISON -->
 <div class="mgrid" style="grid-template-columns:1fr 1fr">
   <div class="card" style="margin-bottom:0">
@@ -244,6 +249,8 @@ canvas{display:block}
 <script>
 setInterval(()=>{const d=new Date();document.getElementById('clk').textContent=d.toUTCString().split(' ')[4]+' UTC';},1000);
  
+const API_BASE='http://127.0.0.1:8000';
+
 // State
 let state={india:26,china:145,eu:20,deal:68,fdi:10};
  
@@ -344,7 +351,7 @@ const sectorBase=[
   {n:'Agriculture',baseRisk:40,tariffSens:0.9},
 ];
  
-function runSimulation(){
+async function runSimulation(){
   const o=calcOutputs();
  
   // Update output metrics
@@ -375,6 +382,17 @@ function runSimulation(){
   scoreEl.textContent=o.score;
   scoreEl.className='omc-val '+(o.score>70?'dn':o.score>40?'nt':'up');
   document.getElementById('bar-score').style.background=o.score>70?'var(--red)':o.score>40?'var(--amb)':'var(--grn)';
+
+  const apiFeedback=document.getElementById('api-feedback');
+  apiFeedback.innerHTML='<div class="ap">Loading live tariff simulation from backend…</div>';
+  try{
+    const response=await fetch(`${API_BASE}/simulate?tariff=${state.india}`);
+    const data=await response.json();
+    apiFeedback.innerHTML=`<div class="ap"><strong>API Simulation</strong><br>Tariff: ${data.tariff}%<br>Price increase: ${data.price_increase}%<br>Risk: ${data.risk}<br>Top affected: ${data.top_affected.join(', ')}</div>`;
+  }catch(e){
+    console.error('Simulation API failed',e);
+    apiFeedback.innerHTML='<div class="ap" style="color:#EF4444">Unable to fetch backend simulation. Continue using local scenario engine.</div>';
+  }
  
   // Sector impacts
   const el=document.getElementById('sim-sectors');el.innerHTML='';

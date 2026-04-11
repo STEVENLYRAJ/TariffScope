@@ -203,6 +203,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <script>
 setInterval(()=>{const d=new Date();document.getElementById('clk').textContent=d.toUTCString().split(' ')[4]+' UTC';},1000);
  
+const API_BASE='http://127.0.0.1:8000';
+ 
 function setGauge(v){
   const off=201-(v/100)*201;
   document.getElementById('garc').setAttribute('stroke-dashoffset',off);
@@ -280,21 +282,31 @@ async function runAnalysis(){
   setLoad(10);
   await sleep(400);setLoad(30);
   await sleep(300);setLoad(55);
+
+  let backend=null;
+  try{
+    const response=await fetch(`${API_BASE}/analyze?text=${encodeURIComponent(query)}`);
+    if(response.ok){backend=await response.json();}
+  }catch(e){console.error('Analyze API failed',e);}
+
   const topic=matchTopic(query);
   const kb=KB[topic];
   await sleep(300);setLoad(75);
   renderSectors(kb?kb.sectors:defaultSectors);
-  const gv=kb?kb.gauge:(60+Math.floor(Math.random()*20));
+
+  const gv=backend?backend.tension_score:(kb?kb.gauge:(60+Math.floor(Math.random()*20)));
   setGauge(gv);
-  const conf=kb?kb.confidence:(70+Math.floor(Math.random()*20));
+  const conf=backend?Math.round((backend.confidence||0)*100):(kb?kb.confidence:(70+Math.floor(Math.random()*20)));
   document.getElementById('confb').style.width=conf+'%';
   document.getElementById('confv').textContent=conf+'%';
   await sleep(300);setLoad(95);
-  const html=kb?kb.output:buildGenericOutput(query);
+
+  const html=backend?`<div class="shed">Backend NLP Summary</div><div class="ap"><strong>Prediction:</strong> ${backend.label}</div><div class="shed">Confidence</div><div class="ap">${Math.round((backend.confidence||0)*100)}% confidence</div><div class="shed">Tension Score</div><div class="ap"><strong>${backend.tension_score}</strong> — higher values indicate stronger tariff/trade tension.</div><div class="shed">Entities Detected</div><div class="ap">Countries: ${backend.countries_mentioned.length?backend.countries_mentioned.join(', '):'None'}<br>Organizations: ${backend.orgs_mentioned.length?backend.orgs_mentioned.join(', '):'None'}</div>`:(kb?kb.output:buildGenericOutput(query));
   renderOutput(html);
   document.getElementById('otag').textContent='COMPLETE';
   document.getElementById('rtag').textContent='COMPLETE';
-  addToHistory(query,kb?kb.verdict:'neut');
+  const verdict=backend?(backend.tension_score>70?'bear':backend.tension_score>40?'neut':'bull'):(kb?kb.verdict:'neut');
+  addToHistory(query,verdict);
   setLoad(100);
   setTimeout(()=>setLoad(0),600);
   btn.disabled=false;btn.textContent='▶ Analyze';
