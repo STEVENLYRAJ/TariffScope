@@ -1,377 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>TariffScope - Insights</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Insights · Pentagon TIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: radial-gradient(circle at top, #0f172a, #020617);
-  color: white;
-  display: flex;
-}
-
-.sidebar {
-  width: 230px;
-  height: 100vh;
-  padding: 20px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(15px);
-  border-right: 1px solid rgba(255,255,255,0.1);
-}
-
-.sidebar h2 {
-  color: #00e5ff;
-  text-shadow: 0 0 10px #00e5ff;
-}
-
-.sidebar a {
-  display: block;
-  margin: 18px 0;
-  color: #aaa;
-  text-decoration: none;
-  transition: 0.3s;
-}
-
-.sidebar a:hover, .sidebar a.active {
-  color: #00e5ff;
-  transform: translateX(5px);
-}
-
-.main {
-  flex: 1;
-  padding: 30px;
-}
-
-.card {
-  padding: 20px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.1);
-  transition: 0.3s;
-  margin-bottom: 20px;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 20px rgba(0,229,255,0.3);
-}
-
-.card h3 {
-  color: #00e5ff;
-}
-
-.chart-box {
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(10px);
-}
-
-.insights-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.insight-metric {
-  text-align: center;
-  padding: 20px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.03);
-  margin-bottom: 15px;
-}
-
-.metric-value {
-  font-size: 32px;
-  font-weight: bold;
-  color: #00e5ff;
-  display: block;
-}
-
-.metric-label {
-  font-size: 14px;
-  color: #aaa;
-  margin-top: 5px;
-}
-
-.trend {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  margin-left: 8px;
-}
-
-.trend.up { background: #00ff9c; color: #000; }
-.trend.down { background: #ff4d4d; color: #fff; }
-
-.fade-in {
-  animation: fade 1s ease-in;
-}
-
-@keyframes fade {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.loading {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(0, 229, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #00e5ff;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.loading-content {
-  text-align: center;
-}
-
-.loading-content p {
-  margin-top: 20px;
-  color: #00e5ff;
-  font-weight: bold;
-}
-
+:root{--phi:1.618;--gold:#C9A84C;--obs:#080A0F;--s1:#0D1117;--s2:#131923;--s3:#1A2332;--bdr:rgba(201,168,76,0.15);--bdr2:rgba(201,168,76,0.4);--tx:#E8EBF0;--txd:#7A8A9E;--txm:#3D4F63;--grn:#22C55E;--red:#EF4444;--amb:#F59E0B;--blu:#3B82F6;--sp2:13px;--sp3:21px;--sp4:34px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--obs);color:var(--tx);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.025) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;padding:var(--sp2) var(--sp3);max-width:1400px;margin:0 auto}
+ 
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 var(--sp4);background:var(--s1);border:.5px solid var(--bdr2);border-radius:4px;margin-bottom:var(--sp3);height:56px;position:relative;overflow:hidden}
+.nav::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold),transparent)}
+.nav-brand{display:flex;align-items:center;gap:var(--sp2)}
+.nav-brand svg{width:32px;height:32px}
+.nav-bname{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.nav-bsub{font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.02em;line-height:1}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--txd);text-decoration:none;padding:7px 14px;border-radius:3px;border:.5px solid transparent;transition:all .15s;white-space:nowrap}
+.nl:hover{color:var(--gold);border-color:var(--bdr)}.nl.ac{color:var(--gold);background:rgba(201,168,76,0.08);border-color:var(--bdr2)}
+.nav-r{display:flex;align-items:center;gap:var(--sp2)}
+.lpill{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.08);border:.5px solid rgba(34,197,94,0.3);border-radius:50px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grn);letter-spacing:.1em}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:blink 1.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.clk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txd)}
+ 
+/* CARD */
+.card{background:var(--s1);border:.5px solid var(--bdr);border-radius:4px;overflow:hidden;transition:border-color .2s;margin-bottom:var(--sp3)}
+.card:hover{border-color:var(--bdr2)}
+.chdr{display:flex;align-items:center;justify-content:space-between;padding:var(--sp2) var(--sp3);border-bottom:.5px solid var(--bdr);background:var(--s2)}
+.ctitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--txd)}
+.ctag{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+ 
+/* GRIDS */
+.mgrid{display:grid;grid-template-columns:61.8% 38.2%;gap:var(--sp3);margin-bottom:var(--sp3)}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp3);margin-bottom:var(--sp3)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3);margin-bottom:var(--sp3)}
+ 
+/* NLP */
+.ngrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ni{padding:10px 12px;background:var(--s2);border-radius:3px;transition:background .15s;cursor:default}
+.ni:hover{background:var(--s3)}
+.nn{font-size:10px;color:var(--txm);margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em}
+.nbw{height:4px;background:var(--s3);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.nb{height:100%;border-radius:2px;transition:width 1s .3s}
+.ns{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txd)}
+ 
+/* SECTOR TABLE */
+.stbl{width:100%;border-collapse:collapse}
+.stbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--txm);padding:8px 10px;text-align:left;border-bottom:.5px solid var(--bdr)}
+.stbl td{padding:10px 10px;font-size:12px;border-bottom:.5px solid rgba(255,255,255,.03);vertical-align:middle}
+.stbl tr:hover td{background:var(--s2)}
+.stbl tr:last-child td{border-bottom:none}
+.stbl .mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.rbadge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px}
+.rbar-wrap{width:80px;height:4px;background:var(--s3);border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle}
+.rbar{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+ 
+/* KEY INSIGHT CARDS */
+.kic{background:var(--s2);border:.5px solid var(--bdr);border-radius:3px;padding:var(--sp2) var(--sp3);transition:border-color .2s}
+.kic:hover{border-color:var(--bdr2)}
+.ki-icon{font-size:24px;margin-bottom:8px}
+.ki-title{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:6px}
+.ki-body{font-size:11px;line-height:1.7;color:var(--txd)}
+.ki-tag{font-family:'JetBrains Mono',monospace;font-size:9px;margin-top:10px;display:inline-block;padding:2px 8px;border-radius:2px}
+ 
+/* COMPARISON */
+.cmp-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:.5px solid rgba(255,255,255,.03)}
+.cmp-row:last-child{border-bottom:none}
+.cmp-flag{font-size:18px;width:28px;text-align:center}
+.cmp-name{font-size:12px;font-weight:600;color:var(--tx);min-width:60px}
+.cmp-bw{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.cmp-b{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.cmp-pct{font-family:'JetBrains Mono',monospace;font-size:12px;min-width:42px;text-align:right}
+.cmp-gdp{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txm);min-width:70px;text-align:right}
+ 
+/* SCORECARD */
+.score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sco{background:var(--s2);border:.5px solid var(--bdr);border-radius:3px;padding:10px 14px}
+.sco-lbl{font-size:10px;color:var(--txm);margin-bottom:4px}
+.sco-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500}
+.sco-sub{font-size:10px;color:var(--txm);margin-top:2px}
+.up{color:var(--grn)}.dn{color:var(--red)}.nt{color:var(--amb)}
+ 
+/* CATEGORY TABS */
+.tabs{display:flex;gap:6px;margin-bottom:var(--sp2)}
+.tab{font-family:'JetBrains Mono',monospace;font-size:10px;padding:6px 14px;border-radius:3px;border:.5px solid var(--bdr);color:var(--txd);cursor:pointer;transition:all .15s}
+.tab:hover{border-color:var(--bdr2);color:var(--gold)}
+.tab.ac{background:rgba(201,168,76,0.1);border-color:var(--bdr2);color:var(--gold)}
+ 
+/* FOOTER */
+.ftr{display:flex;align-items:center;justify-content:space-between;padding:var(--sp2) var(--sp4);background:var(--s1);border:.5px solid var(--bdr);border-radius:4px;margin-top:var(--sp3)}
+.fl,.fr{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txm);letter-spacing:.06em}
+.fr span{color:var(--gold)}
 </style>
 </head>
-
 <body>
-
-<div class="sidebar">
-  <h2>TariffScope</h2>
-  <a href="index.html">Dashboard</a>
-  <a href="analyzer.html">Analyzer</a>
-  <a href="simulation.html">Simulation</a>
-  <a href="map.html">Map</a>
-  <a href="insights.html" class="active">Insights</a>
+<div class="app">
+ 
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 30,11.5 25,28 7,28 2,11.5" fill="none" stroke="#C9A84C" stroke-width="1.5"/><polygon points="16,7 25,13.5 21,24 11,24 7,13.5" fill="rgba(201,168,76,0.08)" stroke="#C9A84C" stroke-width=".75"/><circle cx="16" cy="16" r="2.5" fill="#C9A84C"/></svg>
+    <div><div class="nav-bname">Team Pentagon</div><div class="nav-bsub">Tariff Intelligence</div></div>
+  </div>
+  <div class="nav-links">
+    <a href="dashboard.html" class="nl">Dashboard</a>
+    <a href="analyzer.html" class="nl">Analyzer</a>
+    <a href="insights.html" class="nl ac">Insights</a>
+    <a href="map.html" class="nl">Map</a>
+    <a href="simulation.html" class="nl">Simulation</a>
+  </div>
+  <div class="nav-r">
+    <div class="lpill"><div class="ldot"></div>LIVE</div>
+    <div class="clk" id="clk">--:--:--</div>
+  </div>
+</nav>
+ 
+<!-- NLP SIGNAL ANALYSIS -->
+<div class="mgrid">
+  <div class="card" style="margin-bottom:0">
+    <div class="chdr"><div class="ctitle">NLP Signal Analysis — India Tariff Exposure</div><div class="ctag" id="nlptag">BASELINE</div></div>
+    <div style="padding:var(--sp3)">
+      <div class="tabs" id="nlp-tabs">
+        <div class="tab ac" onclick="switchNLP('all',this)">All Signals</div>
+        <div class="tab" onclick="switchNLP('risk',this)">Risk Factors</div>
+        <div class="tab" onclick="switchNLP('opp',this)">Opportunities</div>
+      </div>
+      <div class="ngrid" id="ngrid"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="chdr"><div class="ctitle">India Tariff Scorecard</div><div class="ctag">FY2025–26</div></div>
+    <div style="padding:var(--sp3)">
+      <div class="score-grid">
+        <div class="sco"><div class="sco-lbl">Applied Tariff Rate</div><div class="sco-val nt">26%</div><div class="sco-sub">Reciprocal Framework</div></div>
+        <div class="sco"><div class="sco-lbl">Total Goods Exports to US</div><div class="sco-val">$77B</div><div class="sco-sub">Annual FY2024</div></div>
+        <div class="sco"><div class="sco-lbl">Revenue at Risk</div><div class="sco-val dn">$3–5B</div><div class="sco-sub">Goods sectors only</div></div>
+        <div class="sco"><div class="sco-lbl">IT Services (Exempt)</div><div class="sco-val up">$55B</div><div class="sco-sub">Fully safe</div></div>
+        <div class="sco"><div class="sco-lbl">GDP Growth Impact</div><div class="sco-val dn">−0.4pp</div><div class="sco-sub">Central estimate</div></div>
+        <div class="sco"><div class="sco-lbl">China+1 FDI Gain</div><div class="sco-val up">+$12.7B</div><div class="sco-sub">Announced 2025</div></div>
+        <div class="sco"><div class="sco-lbl">INR Rate</div><div class="sco-val nt">85.5–87.5</div><div class="sco-sub">USD/INR Range</div></div>
+        <div class="sco"><div class="sco-lbl">Deal Probability</div><div class="sco-val up">68%</div><div class="sco-sub">By Q4 2025</div></div>
+      </div>
+    </div>
+  </div>
 </div>
-
-<div class="main fade-in">
-
-  <h1>Trade Insights & Analytics</h1>
-
-  <div class="insights-grid">
-    <div class="card">
-      <h3>Global Risk Overview</h3>
-      <div class="insight-metric">
-        <span class="metric-value">72</span>
-        <span class="metric-label">Average Risk Score</span>
-        <span class="trend up">+5.2%</span>
-      </div>
-      <div class="insight-metric">
-        <span class="metric-value">6</span>
-        <span class="metric-label">Countries Monitored</span>
-        <span class="trend up">+2</span>
-      </div>
-      <div class="insight-metric">
-        <span class="metric-value">$2.4T</span>
-        <span class="metric-label">Trade Volume at Risk</span>
-        <span class="trend down">-8.1%</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Top Risk Factors</h3>
-      <div class="chart-box">
-        <canvas id="riskFactorsChart" style="max-height: 250px;"></canvas>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Sector Vulnerability</h3>
-      <div class="chart-box">
-        <canvas id="sectorVulnerabilityChart" style="max-height: 250px;"></canvas>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Regional Analysis</h3>
-      <div class="chart-box">
-        <canvas id="regionalChart" style="max-height: 250px;"></canvas>
-      </div>
-    </div>
+ 
+<!-- KEY INSIGHTS -->
+<div class="tgrid">
+  <div class="kic">
+    <div class="ki-icon">🔴</div>
+    <div class="ki-title">Pharma is the Critical Flashpoint</div>
+    <div class="ki-body">India's $8.7B pharmaceutical exports to the US face direct margin destruction. Generic drugs running on 12–18% margins cannot absorb a 26% duty without becoming unviable. Sun Pharma, Dr. Reddy's, Cipla and Lupin face a combined $3.2B annual revenue risk.</div>
+    <div class="ki-tag" style="background:rgba(239,68,68,.12);color:var(--red)">HIGH RISK · IMMEDIATE</div>
   </div>
-
-  <div class="card">
-    <h3>Key Insights</h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-      <div>
-        <h4 style="color: #00ff9c;">📈 Opportunities</h4>
-        <ul style="color: #aaa; line-height: 1.6;">
-          <li>Electronics sector shows resilience despite tariffs</li>
-          <li>UK market presents low-risk entry opportunities</li>
-          <li>Agricultural exports to China remain stable</li>
-          <li>Digital services bypass traditional tariff barriers</li>
-        </ul>
-      </div>
-      <div>
-        <h4 style="color: #ff4d4d;">⚠️ Risks & Challenges</h4>
-        <ul style="color: #aaa; line-height: 1.6;">
-          <li>Steel industry faces critical supply chain disruption</li>
-          <li>Russian sanctions impact European trade routes</li>
-          <li>Pharmaceutical tariffs threaten medical supply chains</li>
-          <li>Oil price volatility affects global transportation costs</li>
-        </ul>
-      </div>
-    </div>
+  <div class="kic">
+    <div class="ki-icon">🟢</div>
+    <div class="ki-title">IT Services: The Structural Shield</div>
+    <div class="ki-body">India's $250B IT sector is exempt from goods tariffs by design. Services exports face zero direct tariff exposure. GCC additions hit a record 1,700+ in FY25. The China+1 digital shift is accelerating enterprise India-first strategies worth $35B+ over 5 years.</div>
+    <div class="ki-tag" style="background:rgba(34,197,94,.12);color:var(--grn)">BULLISH · STRUCTURAL</div>
   </div>
-
-  <div class="card">
-    <h3>Recommendations</h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-      <div style="padding: 15px; background: rgba(0, 229, 255, 0.1); border-radius: 8px;">
-        <h5 style="color: #00e5ff; margin: 0 0 10px 0;">Immediate Actions</h5>
-        <p style="color: #aaa; margin: 0; font-size: 14px;">Diversify suppliers and explore alternative markets in Southeast Asia</p>
-      </div>
-      <div style="padding: 15px; background: rgba(0, 255, 156, 0.1); border-radius: 8px;">
-        <h5 style="color: #00ff9c; margin: 0 0 10px 0;">Strategic Planning</h5>
-        <p style="color: #aaa; margin: 0; font-size: 14px;">Invest in domestic manufacturing capabilities for critical sectors</p>
-      </div>
-      <div style="padding: 15px; background: rgba(255, 215, 0, 0.1); border-radius: 8px;">
-        <h5 style="color: #ffd700; margin: 0 0 10px 0;">Monitoring Focus</h5>
-        <p style="color: #aaa; margin: 0; font-size: 14px;">Track policy changes in major trading partners weekly</p>
-      </div>
-    </div>
+  <div class="kic">
+    <div class="ki-icon">🟡</div>
+    <div class="ki-title">Relative Textile Advantage</div>
+    <div class="ki-body">India's 26% tariff is significantly lower than Vietnam (46%) and Bangladesh (37%), creating a surprise competitive opportunity. Tirupur manufacturers report 12–15% uptick in US buyer inquiries. Order diversion of $800M–$1.2B is feasible within 6–9 months.</div>
+    <div class="ki-tag" style="background:rgba(245,158,11,.12);color:var(--amb)">MIXED · RELATIVE WIN</div>
   </div>
-
+  <div class="kic">
+    <div class="ki-icon">📈</div>
+    <div class="ki-title">China Decoupling Dividend</div>
+    <div class="ki-body">With China at 145% tariff, India captures disproportionate manufacturing FDI. Apple's Foxconn partnership now produces 15% of global iPhones in India, targeting 25% by 2026. $12.7B in manufacturing FDI announced in 2025 alone — a 3-year high.</div>
+    <div class="ki-tag" style="background:rgba(34,197,94,.12);color:var(--grn)">BULLISH · STRATEGIC</div>
+  </div>
+  <div class="kic">
+    <div class="ki-icon">🏦</div>
+    <div class="ki-title">RBI's Balancing Act</div>
+    <div class="ki-body">RBI signalling 50bps of rate cuts in FY26 despite headline inflation at 5.1%. The growth-vs-inflation trade-off is delicate. FX intervention trigger set at ₹87.5 — a line RBI has defended historically. Domestic consumption remains the primary buffer.</div>
+    <div class="ki-tag" style="background:rgba(59,130,246,.12);color:var(--blu)">MONITOR · MACRO</div>
+  </div>
+  <div class="kic">
+    <div class="ki-icon">🤝</div>
+    <div class="ki-title">Bilateral Deal: Key Variable</div>
+    <div class="ki-body">India-US trade negotiators are working toward a $100B+ bilateral framework targeting Q4 2025. A deal could provide sector-specific carve-outs for pharma and textiles, restore MFN terms, and signal a strategic partnership that benefits both sides.</div>
+    <div class="ki-tag" style="background:rgba(201,168,76,.12);color:var(--gold)">WATCH · DIPLOMATIC</div>
+  </div>
 </div>
-
+ 
+<!-- SECTOR TABLE + COUNTRY COMPARISON -->
+<div class="two-col">
+  <div class="card" style="margin-bottom:0">
+    <div class="chdr"><div class="ctitle">Sector Risk Matrix — India</div><div class="ctag">FULL BREAKDOWN</div></div>
+    <div style="padding:0 var(--sp2)">
+      <table class="stbl" id="stbl">
+        <thead><tr><th>Sector</th><th>Tariff Impact</th><th>Risk Score</th><th>Status</th></tr></thead>
+        <tbody id="stbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="chdr"><div class="ctitle">Country Tariff Comparison</div><div class="ctag">GLOBAL RANK</div></div>
+    <div style="padding:var(--sp3)">
+      <div id="cmp"></div>
+    </div>
+    <div style="padding:0 var(--sp3) var(--sp3)">
+      <div style="background:var(--s2);border-radius:3px;padding:12px 14px;border:.5px solid var(--bdr)">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);margin-bottom:8px">Pentagon Insight</div>
+        <div style="font-size:12px;line-height:1.7;color:var(--txd)">India's 26% tariff ranks it as the <span style="color:var(--grn);font-weight:600">least-hit major Asian exporter</span> after the 90-day pause framework. This relative advantage versus Vietnam (46%) and China (145%) is a rare bright spot in an otherwise negative macro picture.</div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="fl">Pentagon TIS · Insights · NLP Engine v2.4</div>
+  <div class="fr">Built by <span>Team Pentagon</span> · All data modeled</div>
+</div>
+</div>
+ 
 <script>
-// Loading Animation
-function showLoadingOverlay(duration = 2000) {
-  const overlay = document.createElement('div');
-  overlay.className = 'loading-overlay';
-  overlay.innerHTML = '<div class="loading-content"><div class="loading"></div><p>Loading Insights...</p></div>';
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.remove(), duration);
+setInterval(()=>{const d=new Date();document.getElementById('clk').textContent=d.toUTCString().split(' ')[4]+' UTC';},1000);
+ 
+const allNLP=[
+  {n:'Trade War Sentiment',s:78,c:'#EF4444',cat:'risk'},
+  {n:'Rupee Pressure',s:64,c:'#F59E0B',cat:'risk'},
+  {n:'FDI Opportunity',s:55,c:'#22C55E',cat:'opp'},
+  {n:'Supply Chain Shift',s:70,c:'#3B82F6',cat:'opp'},
+  {n:'Export Diversification',s:45,c:'#22C55E',cat:'opp'},
+  {n:'Inflation Risk (US)',s:66,c:'#EF4444',cat:'risk'},
+  {n:'Pharma Revenue Risk',s:88,c:'#EF4444',cat:'risk'},
+  {n:'IT Services Shield',s:92,c:'#22C55E',cat:'opp'},
+  {n:'Bilateral Deal Prob.',s:68,c:'#22C55E',cat:'opp'},
+  {n:'INR Depreciation',s:58,c:'#F59E0B',cat:'risk'},
+];
+let currentCat='all';
+function renderNLP(cat){
+  const data=cat==='all'?allNLP:allNLP.filter(n=>n.cat===cat);
+  const el=document.getElementById('ngrid');el.innerHTML='';
+  data.forEach(n=>{
+    const d=document.createElement('div');d.className='ni';
+    d.innerHTML=`<div class="nn">${n.n}</div><div class="nbw"><div class="nb" style="width:0%;background:${n.c}" data-w="${n.s}"></div></div><div class="ns">${n.s}/100</div>`;
+    el.appendChild(d);
+  });
+  setTimeout(()=>el.querySelectorAll('.nb').forEach(b=>b.style.width=b.dataset.w+'%'),200);
 }
-
-// Charts with Tooltips
-const chartOptions = {
-  responsive: true,
-  plugins: {
-    legend: { labels: { color: '#aaa' } },
-    tooltip: {
-      backgroundColor: 'rgba(0, 229, 255, 0.9)',
-      titleColor: '#fff',
-      bodyColor: '#fff',
-      borderColor: '#00e5ff',
-      borderWidth: 2,
-      padding: 15,
-      displayColors: true
-    }
-  },
-  scales: {
-    y: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-    x: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-  }
-};
-
-// Risk Factors Chart
-new Chart(document.getElementById("riskFactorsChart"), {
-  type: "doughnut",
-  data: {
-    labels: ["Tariff Changes", "Supply Chain", "Currency Volatility", "Policy Uncertainty"],
-    datasets: [{
-      data: [35, 25, 20, 20],
-      backgroundColor: ["#ff4d4d", "#ffd700", "#00e5ff", "#00ff9c"],
-      borderWidth: 2,
-      borderColor: '#fff'
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: {
-        labels: { color: '#aaa' },
-        position: 'bottom'
-      }
-    }
-  }
-});
-
-// Sector Vulnerability Chart
-new Chart(document.getElementById("sectorVulnerabilityChart"), {
-  type: "radar",
-  data: {
-    labels: ["Electronics", "Steel", "Agriculture", "Pharmaceuticals"],
-    datasets: [{
-      label: "Vulnerability Score",
-      data: [65, 85, 45, 70],
-      borderColor: "#00e5ff",
-      backgroundColor: "rgba(0, 229, 255, 0.1)",
-      pointBackgroundColor: "#00e5ff",
-      pointBorderColor: "#fff",
-      pointRadius: 6
-    }]
-  },
-  options: chartOptions
-});
-
-// Regional Analysis Chart
-new Chart(document.getElementById("regionalChart"), {
-  type: "bar",
-  data: {
-    labels: ["Asia", "Europe", "Americas", "Oceania"],
-    datasets: [{
-      label: "Trade Risk Index",
-      data: [78, 52, 45, 38],
-      backgroundColor: ["#ff4d4d", "#ffd700", "#00ff9c", "#00e5ff"],
-      borderRadius: 8
-    }]
-  },
-  options: {
-    ...chartOptions,
-    scales: {
-      y: {
-        ...chartOptions.scales.y,
-        beginAtZero: true,
-        max: 100
-      },
-      x: chartOptions.scales.x
-    }
-  }
-});
-
-// Initialize page
-window.addEventListener('load', () => {
-  showLoadingOverlay(1500);
-});
-
+renderNLP('all');
+ 
+function switchNLP(cat,el){
+  currentCat=cat;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('ac'));
+  el.classList.add('ac');
+  renderNLP(cat);
+}
+ 
+const sectors=[
+  {name:'Pharmaceuticals',exp:'$8.7B',score:88,c:'#EF4444',status:'CRITICAL'},
+  {name:'Textiles & Apparel',exp:'$6.2B',score:76,c:'#EF4444',status:'HIGH'},
+  {name:'Auto Components',exp:'$5.1B',score:68,c:'#F59E0B',status:'HIGH'},
+  {name:'Electronics',exp:'$4.8B',score:60,c:'#F59E0B',status:'MEDIUM'},
+  {name:'Steel & Metal',exp:'$3.9B',score:55,c:'#F59E0B',status:'MEDIUM'},
+  {name:'Chemical Products',exp:'$3.2B',score:48,c:'#3B82F6',status:'LOW-MED'},
+  {name:'Agriculture',exp:'$2.8B',score:40,c:'#3B82F6',status:'LOW'},
+  {name:'IT Services',exp:'$55B',score:12,c:'#22C55E',status:'EXEMPT'},
+  {name:'BPO/ITES',exp:'$38B',score:14,c:'#22C55E',status:'EXEMPT'},
+];
+function renderTable(){
+  const tb=document.getElementById('stbody');tb.innerHTML='';
+  sectors.forEach(s=>{
+    const sbg=s.score>75?'rgba(239,68,68,.12)':s.score>50?'rgba(245,158,11,.12)':s.score>20?'rgba(59,130,246,.12)':'rgba(34,197,94,.12)';
+    const str=s.status==='CRITICAL'?'#EF4444':s.status==='HIGH'?'#EF4444':s.status==='MEDIUM'?'#F59E0B':s.status==='EXEMPT'?'#22C55E':'#3B82F6';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="font-weight:600;color:var(--tx)">${s.name}</td><td class="mono" style="color:var(--txd)">${s.exp}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="rbar-wrap"><div class="rbar" style="width:0%;background:${s.c}" data-w="${s.score}"></div></div><span class="mono" style="color:${s.c}">${s.score}</span></div></td><td><span class="rbadge" style="background:${sbg};color:${str}">${s.status}</span></td>`;
+    tb.appendChild(tr);
+  });
+  setTimeout(()=>document.querySelectorAll('.rbar').forEach(b=>b.style.width=b.dataset.w+'%'),300);
+}
+renderTable();
+ 
+const countries=[
+  {f:'🇻🇳',n:'Vietnam',t:46,gdp:'-2.1%',c:'#EF4444'},
+  {f:'🇨🇳',n:'China',t:100,gdp:'-1.2%',c:'#EF4444',note:'145% actual'},
+  {f:'🇯🇵',n:'Japan',t:24,gdp:'-0.5%',c:'#F59E0B'},
+  {f:'🇮🇳',n:'India',t:26,gdp:'-0.4%',c:'#F59E0B',highlight:true},
+  {f:'🇪🇺',n:'EU',t:20,gdp:'-0.3%',c:'#F59E0B'},
+  {f:'🇰🇷',n:'S. Korea',t:25,gdp:'-0.4%',c:'#F59E0B'},
+  {f:'🇲🇽',n:'Mexico',t:5,gdp:'+0.3%',c:'#22C55E'},
+  {f:'🇧🇷',n:'Brazil',t:10,gdp:'+0.2%',c:'#22C55E'},
+];
+function renderCmp(){
+  const el=document.getElementById('cmp');el.innerHTML='';
+  // Sort by tariff desc for viz
+  const sorted=[...countries].sort((a,b)=>b.t-a.t);
+  sorted.forEach(c=>{
+    const d=document.createElement('div');d.className='cmp-row';
+    if(c.highlight)d.style.cssText='background:rgba(201,168,76,0.04);border-radius:3px;padding-left:6px;padding-right:6px;margin:0 -6px';
+    d.innerHTML=`<span class="cmp-flag">${c.f}</span><span class="cmp-name">${c.n}${c.highlight?' ◀':''}</span><div class="cmp-bw"><div class="cmp-b" style="width:0%;background:${c.c}" data-w="${Math.min(c.t,100)}"></div></div><span class="cmp-pct" style="color:${c.c}">${c.note||c.t+'%'}</span><span class="cmp-gdp">${c.gdp} GDP</span>`;
+    el.appendChild(d);
+  });
+  setTimeout(()=>el.querySelectorAll('.cmp-b').forEach(b=>b.style.width=b.dataset.w+'%'),400);
+}
+renderCmp();
 </script>
-
 </body>
 </html>

@@ -1,332 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>TariffScope - Analyzer</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Analyzer · Pentagon TIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: radial-gradient(circle at top, #0f172a, #020617);
-  color: white;
-  display: flex;
-}
-
-.sidebar {
-  width: 230px;
-  height: 100vh;
-  padding: 20px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(15px);
-  border-right: 1px solid rgba(255,255,255,0.1);
-}
-
-.sidebar h2 {
-  color: #00e5ff;
-  text-shadow: 0 0 10px #00e5ff;
-}
-
-.sidebar a {
-  display: block;
-  margin: 18px 0;
-  color: #aaa;
-  text-decoration: none;
-  transition: 0.3s;
-}
-
-.sidebar a:hover, .sidebar a.active {
-  color: #00e5ff;
-  transform: translateX(5px);
-}
-
-.main {
-  flex: 1;
-  padding: 30px;
-}
-
-.card {
-  padding: 20px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.1);
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 20px rgba(0,229,255,0.3);
-}
-
-.card h3 {
-  color: #00e5ff;
-}
-
-.chart-box {
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(10px);
-}
-
-.flex {
-  display: flex;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.controls {
-  width: 260px;
-  padding: 20px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
-}
-
-input, select {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #020617;
-  color: white;
-}
-
-button {
-  width: 100%;
-  margin-top: 15px;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(90deg, #00e5ff, #00ff9c);
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
-}
-
-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px #00e5ff;
-}
-
-.risk {
-  font-size: 32px;
-  margin-top: 20px;
-  font-weight: bold;
-}
-
-.fade-in {
-  animation: fade 1s ease-in;
-}
-
-@keyframes fade {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.loading {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(0, 229, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #00e5ff;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.loading-content {
-  text-align: center;
-}
-
-.loading-content p {
-  margin-top: 20px;
-  color: #00e5ff;
-  font-weight: bold;
-}
-
+:root{--phi:1.618;--gold:#C9A84C;--gold-dim:#8A6F2E;--obs:#080A0F;--s1:#0D1117;--s2:#131923;--s3:#1A2332;--bdr:rgba(201,168,76,0.15);--bdr2:rgba(201,168,76,0.4);--tx:#E8EBF0;--txd:#7A8A9E;--txm:#3D4F63;--grn:#22C55E;--red:#EF4444;--amb:#F59E0B;--blu:#3B82F6;--sp1:8px;--sp2:13px;--sp3:21px;--sp4:34px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--obs);color:var(--tx);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.025) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;padding:var(--sp2) var(--sp3);max-width:1400px;margin:0 auto}
+ 
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 var(--sp4);background:var(--s1);border:.5px solid var(--bdr2);border-radius:4px;margin-bottom:var(--sp3);height:56px;position:relative;overflow:hidden}
+.nav::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold),transparent)}
+.nav-brand{display:flex;align-items:center;gap:var(--sp2)}
+.nav-brand svg{width:32px;height:32px}
+.nav-bname{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.nav-bsub{font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.02em;line-height:1}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--txd);text-decoration:none;padding:7px 14px;border-radius:3px;border:.5px solid transparent;transition:all .15s;white-space:nowrap}
+.nl:hover{color:var(--gold);border-color:var(--bdr)}
+.nl.ac{color:var(--gold);background:rgba(201,168,76,0.08);border-color:var(--bdr2)}
+.nav-r{display:flex;align-items:center;gap:var(--sp2)}
+.lpill{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.08);border:.5px solid rgba(34,197,94,0.3);border-radius:50px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grn);letter-spacing:.1em}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:blink 1.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.clk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txd)}
+ 
+/* CARD */
+.card{background:var(--s1);border:.5px solid var(--bdr);border-radius:4px;overflow:hidden;transition:border-color .2s;margin-bottom:var(--sp3)}
+.card:hover{border-color:var(--bdr2)}
+.chdr{display:flex;align-items:center;justify-content:space-between;padding:var(--sp2) var(--sp3);border-bottom:.5px solid var(--bdr);background:var(--s2)}
+.ctitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--txd)}
+.ctag{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+ 
+/* QUERY */
+.qin{display:flex;gap:var(--sp2);align-items:stretch;padding:var(--sp3)}
+.qwrap{flex:1;position:relative}
+.qwrap::before{content:'QUERY';position:absolute;left:14px;top:-9px;font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--gold);background:var(--s1);padding:0 6px;z-index:1}
+.qi{width:100%;background:var(--s2);border:.5px solid var(--bdr2);border-radius:3px;color:var(--tx);font-family:'Syne',sans-serif;font-size:14px;padding:13px 16px;outline:none;transition:border-color .2s,box-shadow .2s;resize:none;height:52px}
+.qi:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.08)}
+.qi::placeholder{color:var(--txm)}
+.btn{background:var(--gold);color:var(--obs);border:none;border-radius:3px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:0 var(--sp4);cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
+.btn:hover{opacity:.88}.btn:active{transform:scale(.97)}.btn:disabled{opacity:.35;cursor:default}
+.presets{display:flex;gap:8px;flex-wrap:wrap;padding:0 var(--sp3) var(--sp2)}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txd);background:var(--s2);border:.5px solid var(--bdr);border-radius:50px;padding:4px 12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--gold);color:var(--gold)}
+.lbar{height:2px;background:var(--s3);border-radius:1px;overflow:hidden;margin:0 var(--sp3) var(--sp3)}
+.lfill{height:100%;background:var(--gold);width:0%;transition:width .4s ease;box-shadow:0 0 8px rgba(201,168,76,.4)}
+ 
+/* MAIN GRID */
+.mgrid{display:grid;grid-template-columns:61.8% 38.2%;gap:var(--sp3);margin-bottom:var(--sp3)}
+ 
+/* OUTPUT */
+.oa{min-height:360px;background:var(--s2);border:.5px solid var(--bdr);border-radius:3px;padding:var(--sp3);font-size:13px;line-height:1.8;color:var(--tx)}
+.oph{color:var(--txm);font-size:12px;line-height:1.7;font-family:'JetBrains Mono',monospace}
+.oc{animation:fi .4s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tcur{display:inline-block;width:2px;height:14px;background:var(--gold);vertical-align:middle;animation:blink .7s step-end infinite;margin-left:2px}
+.shed{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);margin:14px 0 6px;border-bottom:.5px solid var(--bdr);padding-bottom:4px}
+.ap{margin-bottom:10px;font-size:13px;line-height:1.8;color:var(--txd)}
+.ap strong{color:var(--tx);font-weight:600}
+.hg{color:var(--gold);font-weight:600}.hr{color:var(--red)}.hg2{color:var(--grn)}
+.verd{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:8px}
+.vbear{background:rgba(239,68,68,.12);color:var(--red);border:.5px solid rgba(239,68,68,.3)}
+.vbull{background:rgba(34,197,94,.12);color:var(--grn);border:.5px solid rgba(34,197,94,.3)}
+.vneut{background:rgba(245,158,11,.12);color:var(--amb);border:.5px solid rgba(245,158,11,.3)}
+ 
+/* GAUGE */
+.gwrap{display:flex;flex-direction:column;align-items:center;padding:var(--sp3) 0 var(--sp2)}
+.gval{font-size:32px;font-weight:800;color:var(--tx);font-family:'JetBrains Mono',monospace;margin-top:-8px;text-align:center}
+.glbl{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:var(--txd);margin-top:4px;text-align:center}
+ 
+/* CONFIDENCE METER */
+.conf-row{display:flex;align-items:center;gap:10px;padding:8px var(--sp3);border-top:.5px solid var(--bdr)}
+.conf-lbl{font-size:10px;color:var(--txm);min-width:80px}
+.conf-bw{flex:1;height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
+.conf-b{height:100%;border-radius:2px;background:var(--gold);transition:width 1s ease}
+.conf-v{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);min-width:35px;text-align:right}
+ 
+/* SECTORS */
+.srow{display:flex;align-items:center;gap:var(--sp2);padding:8px 4px;border-bottom:.5px solid rgba(255,255,255,0.03);cursor:pointer;transition:background .15s;border-radius:3px}
+.srow:hover{background:var(--s2)}.srow:last-child{border-bottom:none}
+.sname{font-size:12px;font-weight:500;min-width:120px;color:var(--txd)}
+.sname.ac{color:var(--tx)}
+.sbw{flex:1;height:5px;background:var(--s3);border-radius:2px;overflow:hidden}
+.sb{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.sv{font-family:'JetBrains Mono',monospace;font-size:11px;min-width:40px;text-align:right}
+.sd{font-family:'JetBrains Mono',monospace;font-size:10px;min-width:48px;text-align:right;color:var(--txm)}
+ 
+/* HISTORY */
+.hist{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bdr) transparent}
+.hitem{display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--s2);border-radius:3px;cursor:pointer;transition:border-color .15s;border:.5px solid transparent}
+.hitem:hover{border-color:var(--bdr2)}
+.hq{font-size:11px;color:var(--txd);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hvt{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:2px 7px;border-radius:2px}
+ 
+/* FOOTER */
+.ftr{display:flex;align-items:center;justify-content:space-between;padding:var(--sp2) var(--sp4);background:var(--s1);border:.5px solid var(--bdr);border-radius:4px;margin-top:var(--sp3)}
+.fl,.fr{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txm);letter-spacing:.06em}
+.fr span{color:var(--gold)}
 </style>
 </head>
-
 <body>
-
-<div class="sidebar">
-  <h2>TariffScope</h2>
-  <a href="index.html">Dashboard</a>
-  <a href="analyzer.html" class="active">Analyzer</a>
-  <a href="simulation.html">Simulation</a>
-  <a href="map.html">Map</a>
-  <a href="insights.html">Insights</a>
+<div class="app">
+ 
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 30,11.5 25,28 7,28 2,11.5" fill="none" stroke="#C9A84C" stroke-width="1.5"/><polygon points="16,7 25,13.5 21,24 11,24 7,13.5" fill="rgba(201,168,76,0.08)" stroke="#C9A84C" stroke-width=".75"/><circle cx="16" cy="16" r="2.5" fill="#C9A84C"/></svg>
+    <div><div class="nav-bname">Team Pentagon</div><div class="nav-bsub">Tariff Intelligence</div></div>
+  </div>
+  <div class="nav-links">
+    <a href="dashboard.html" class="nl">Dashboard</a>
+    <a href="analyzer.html" class="nl ac">Analyzer</a>
+    <a href="insights.html" class="nl">Insights</a>
+    <a href="map.html" class="nl">Map</a>
+    <a href="simulation.html" class="nl">Simulation</a>
+  </div>
+  <div class="nav-r">
+    <div class="lpill"><div class="ldot"></div>NLP ACTIVE</div>
+    <div class="clk" id="clk">--:--:--</div>
+  </div>
+</nav>
+ 
+<!-- QUERY BOX -->
+<div class="card">
+  <div class="chdr"><div class="ctitle">Query Engine</div><div class="ctag" id="otag">READY</div></div>
+  <div class="qin">
+    <div class="qwrap"><textarea class="qi" id="qi" placeholder="e.g. What is the effect of US tariffs on India's pharmaceutical exports?" rows="1"></textarea></div>
+    <button class="btn" id="abtn" onclick="runAnalysis()">▶ Analyze</button>
+  </div>
+  <div class="presets">
+    <div class="chip" onclick="sq('Impact of 26% tariff on India IT sector and software exports')">India IT Sector</div>
+    <div class="chip" onclick="sq('Effect of US tariffs on Indian textile exports and garment industry')">Indian Textiles</div>
+    <div class="chip" onclick="sq('How do US tariffs affect India GDP growth trajectory and rupee')">India GDP</div>
+    <div class="chip" onclick="sq('US tariff impact on China and global supply chains')">China Supply Chain</div>
+    <div class="chip" onclick="sq('Which countries benefit most from US China trade war tariffs')">Winners &amp; Losers</div>
+    <div class="chip" onclick="sq('Impact of reciprocal tariffs on US inflation and consumer prices')">US Inflation</div>
+    <div class="chip" onclick="sq('India pharmaceutical exports under US tariff pressure generic drugs')">Pharma Impact</div>
+  </div>
+  <div class="lbar"><div class="lfill" id="lf"></div></div>
 </div>
-
-<div class="main fade-in">
-
-  <h1>Tariff Analyzer</h1>
-
-  <div class="flex">
-    <div class="controls">
-      <label>Country</label>
-      <select id="countrySelect">
-        <option>India</option>
-        <option>China</option>
-        <option>United Kingdom</option>
-        <option>Russia</option>
-        <option>Japan</option>
-        <option>Australia</option>
-      </select>
-
-      <label>Sector</label>
-      <select id="sectorSelect">
-        <option>Electronics</option>
-        <option>Steel</option>
-        <option>Agriculture</option>
-        <option>Pharmaceuticals</option>
-      </select>
-
-      <label>Tariff (%)</label>
-      <input type="range" id="tariffSlider" min="0" max="25" value="10" />
-
-      <button onclick="analyzeTariff()">Analyze Impact</button>
-    </div>
-
-    <div style="flex:1;">
-      <div class="chart-box">
-        <canvas id="sectorChart"></canvas>
+ 
+<!-- MAIN GRID -->
+<div class="mgrid">
+  <div style="display:flex;flex-direction:column;gap:var(--sp3)">
+    <div class="card" style="margin-bottom:0">
+      <div class="chdr"><div class="ctitle">AI Analysis Output</div><div class="ctag" id="rtag">READY</div></div>
+      <div style="padding:var(--sp3)">
+        <div class="oa" id="oa">
+          <div class="oph" id="oph">> Pentagon Intelligence System initialized<br>> NLP engine: active &nbsp;·&nbsp; Tariff database: loaded<br>> Scenario models: 2025 reciprocal tariff framework<br>> India exposure matrix: calibrated<br><br><span style="color:var(--gold)">Enter a query above — or click a preset chip — to generate analysis...</span></div>
+        </div>
       </div>
-      <div class="risk" id="riskDisplay" style="color:#ff4d4d;">Risk Score: 78</div>
+      <div class="conf-row">
+        <span class="conf-lbl">NLP Confidence</span>
+        <div class="conf-bw"><div class="conf-b" id="confb" style="width:0%"></div></div>
+        <span class="conf-v" id="confv">—</span>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="chdr"><div class="ctitle">Query History</div><div class="ctag">SESSION</div></div>
+      <div style="padding:var(--sp2) var(--sp3)"><div class="hist" id="hist"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txm);padding:8px 0">No queries yet this session...</div></div></div>
     </div>
   </div>
-
-  <div class="card" style="margin-top: 30px;">
-    <h3>Analysis Results</h3>
-    <div id="analysisResults">
-      <p>Select parameters and click "Analyze Impact" to see detailed tariff analysis.</p>
+ 
+  <div style="display:flex;flex-direction:column;gap:var(--sp3)">
+    <div class="card" style="margin-bottom:0">
+      <div class="chdr"><div class="ctitle">India Impact Score</div><div class="ctag">DYNAMIC</div></div>
+      <div style="padding:var(--sp2) var(--sp3)">
+        <div class="gwrap">
+          <svg style="width:160px;height:90px" viewBox="0 0 160 90">
+            <defs><linearGradient id="ga" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#22C55E"/><stop offset="50%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#EF4444"/></linearGradient></defs>
+            <path d="M 16 80 A 64 64 0 0 1 144 80" fill="none" stroke="#1A2332" stroke-width="8" stroke-linecap="round"/>
+            <path id="garc" d="M 16 80 A 64 64 0 0 1 144 80" fill="none" stroke="url(#ga)" stroke-width="8" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="80"/>
+            <line id="gneedle" x1="80" y1="80" x2="80" y2="22" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" transform="rotate(-50 80 80)"/>
+            <circle cx="80" cy="80" r="5" fill="#C9A84C"/>
+            <text x="16" y="88" fill="#3D4F63" font-size="9" font-family="JetBrains Mono">0</text>
+            <text x="140" y="88" fill="#3D4F63" font-size="9" font-family="JetBrains Mono">100</text>
+          </svg>
+          <div class="gval" id="gval">74</div>
+          <div class="glbl" id="glbl">High Exposure</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="flex:1;margin-bottom:0">
+      <div class="chdr"><div class="ctitle">Sector Impact Breakdown</div><div class="ctag">DYNAMIC</div></div>
+      <div style="padding:var(--sp2) var(--sp3)" id="sbars"></div>
     </div>
   </div>
-
 </div>
-
+ 
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="fl">Pentagon TIS · Analyzer · NLP Engine v2.4</div>
+  <div class="fr">Built by <span>Team Pentagon</span> · All data modeled</div>
+</div>
+</div>
+ 
 <script>
-// Loading Animation
-function showLoadingOverlay(duration = 2000) {
-  const overlay = document.createElement('div');
-  overlay.className = 'loading-overlay';
-  overlay.innerHTML = '<div class="loading-content"><div class="loading"></div><p>Analyzing Data...</p></div>';
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.remove(), duration);
+setInterval(()=>{const d=new Date();document.getElementById('clk').textContent=d.toUTCString().split(' ')[4]+' UTC';},1000);
+ 
+function setGauge(v){
+  const off=201-(v/100)*201;
+  document.getElementById('garc').setAttribute('stroke-dashoffset',off);
+  const ang=-90+(v/100)*180;
+  document.getElementById('gneedle').setAttribute('transform',`rotate(${ang} 80 80)`);
+  document.getElementById('gval').textContent=v;
+  document.getElementById('glbl').textContent=v<30?'Low Risk':v<55?'Moderate':v<80?'High Exposure':'Critical Risk';
 }
-
-// Charts with Tooltips
-const chartOptions = {
-  responsive: true,
-  plugins: {
-    legend: { labels: { color: '#aaa' } },
-    tooltip: {
-      backgroundColor: 'rgba(0, 229, 255, 0.9)',
-      titleColor: '#fff',
-      bodyColor: '#fff',
-      borderColor: '#00e5ff',
-      borderWidth: 2,
-      padding: 15,
-      displayColors: true,
-      callbacks: {
-        afterLabel: function(context) {
-          return '→ Click for details';
-        }
-      }
-    }
-  },
-  scales: {
-    y: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-    x: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-  }
+setTimeout(()=>setGauge(74),400);
+ 
+const defaultSectors=[
+  {n:'Pharmaceuticals',v:82,c:'#EF4444',d:'HIGH',ac:true},
+  {n:'IT Services',v:28,c:'#22C55E',d:'LOW',ac:false},
+  {n:'Textiles',v:75,c:'#EF4444',d:'HIGH',ac:true},
+  {n:'Auto Parts',v:68,c:'#F59E0B',d:'MED',ac:true},
+  {n:'Steel & Metal',v:55,c:'#F59E0B',d:'MED',ac:false},
+  {n:'Electronics',v:60,c:'#F59E0B',d:'MED',ac:false},
+  {n:'Agriculture',v:40,c:'#3B82F6',d:'LOW',ac:false},
+];
+function renderSectors(data){
+  const el=document.getElementById('sbars');el.innerHTML='';
+  data.forEach(s=>{
+    const r=document.createElement('div');r.className='srow';
+    r.innerHTML=`<span class="sname ${s.ac?'ac':''}">${s.n}</span><div class="sbw"><div class="sb" style="width:0%;background:${s.c}" data-w="${s.v}"></div></div><span class="sv" style="color:${s.c}">${s.v}</span><span class="sd">${s.d}</span>`;
+    el.appendChild(r);
+  });
+  setTimeout(()=>el.querySelectorAll('.sb').forEach(b=>b.style.width=b.dataset.w+'%'),100);
+}
+renderSectors(defaultSectors);
+ 
+const KB={
+  pharma:{keywords:['pharma','pharmaceutical','drug','medicine','generic','api','active ingredient'],sectors:[{n:'Pharmaceuticals',v:92,c:'#EF4444',d:'CRITICAL',ac:true},{n:'API Manufacturing',v:85,c:'#EF4444',d:'HIGH',ac:true},{n:'Biosimilars',v:70,c:'#F59E0B',d:'HIGH',ac:true},{n:'Medical Devices',v:55,c:'#F59E0B',d:'MED',ac:false},{n:'IT/ITES',v:22,c:'#22C55E',d:'LOW',ac:false},{n:'Textiles',v:60,c:'#F59E0B',d:'MED',ac:false},{n:'Agriculture',v:35,c:'#3B82F6',d:'LOW',ac:false}],gauge:88,confidence:91,verdict:'bear',output:`<div class="shed">Executive Summary</div><div class="ap"><strong>India's pharmaceutical sector faces its most significant trade headwind in a decade.</strong> The US accounts for <span class="hg">~31% of India's total pharma exports ($8.7B of $27.9B)</span>, making this the highest-exposure sector under the reciprocal tariff framework.</div><div class="shed">Tariff Mechanics</div><div class="ap">The <span class="hg">26% blanket tariff</span> applied to Indian goods directly threatens the <span class="hr">$8.7B pharma export corridor</span>. Generic drugs — India's primary export category — operate on thin margins of 12–18%, meaning a 26% duty effectively renders many products <span class="hr">uncompetitive overnight</span>. Sun Pharma, Dr. Reddy's, Cipla, and Lupin face cumulative exposure exceeding <span class="hg">$3.2B in annual revenue risk</span>.</div><div class="shed">API Cascade</div><div class="ap">India sources <span class="hr">~68% of its API inputs from China</span>. With China facing 145% US tariffs, Chinese suppliers are diverting API inventory toward India at discounted rates — a short-term cost benefit, but a <span class="hr">supply chain sovereignty risk</span>. The dual exposure creates a structural squeeze.</div><div class="shed">Mitigation Pathways</div><div class="ap">India is actively negotiating a <span class="hg2">sector-specific carve-out</span> in bilateral trade talks. US pharma giants (Pfizer, Merck) rely on Indian generics — creating lobbying pressure <span class="hg2">in India's favour</span>. A managed trade deal could restore preferential access within 12–18 months.</div><div class="shed">Pentagon Verdict</div><div class="ap">Short-term: severe margin compression. Medium-term: negotiated resolution likely.<br><span class="verd vbear">◆ BEARISH — Short Term</span></div>`},
+  it:{keywords:['it','software','tech','technology','services','outsourcing','bpo','it sector','information technology'],sectors:[{n:'IT Services',v:22,c:'#22C55E',d:'LOW',ac:false},{n:'BPO/KPO',v:18,c:'#22C55E',d:'LOW',ac:false},{n:'SaaS Products',v:30,c:'#3B82F6',d:'LOW-MED',ac:false},{n:'Semiconductors',v:55,c:'#F59E0B',d:'MED',ac:true},{n:'Hardware Mfg',v:65,c:'#F59E0B',d:'HIGH',ac:true},{n:'Pharmaceuticals',v:82,c:'#EF4444',d:'HIGH',ac:true},{n:'Textiles',v:75,c:'#EF4444',d:'HIGH',ac:true}],gauge:28,confidence:94,verdict:'bull',output:`<div class="shed">Executive Summary</div><div class="ap"><strong>India's $250B IT services industry is largely insulated from goods tariffs</strong> — a critical structural advantage. Services trade is not subject to the reciprocal tariff framework, shielding TCS, Infosys, Wipro, and HCL.</div><div class="shed">Why IT is Structurally Protected</div><div class="ap">The <span class="hg">2025 US reciprocal tariffs target goods, not services</span>. India's IT export model — delivering software, consulting, and BPO services digitally — falls entirely outside tariff jurisdiction. The <span class="hg2">~$55B annual IT services export</span> to the US continues unaffected.</div><div class="shed">Indirect Risks</div><div class="ap">While tariffs don't directly hit IT, <span class="hr">three indirect vectors</span> warrant monitoring: (1) US corporate clients facing tariff-driven margin compression may <span class="hr">cut outsourcing budgets</span>; (2) H1-B visa restrictions raise <span class="hr">on-site delivery costs</span> by 8–12%; (3) A broader US recession would reduce demand for discretionary tech spend.</div><div class="shed">China+1 Tailwind</div><div class="ap">GCC additions hit a record 1,700+ in India in 2024–25. This represents a <span class="hg2">$35B+ incremental opportunity</span> over 5 years.</div><div class="shed">Pentagon Verdict</div><div class="ap">IT is the crown jewel — protected, growing, and benefitting from trade war realignment.<br><span class="verd vbull">▲ BULLISH — Strong Conviction</span></div>`},
+  textile:{keywords:['textile','garment','apparel','clothing','fabric','cotton','yarn','fashion'],sectors:[{n:'Textiles/Apparel',v:79,c:'#EF4444',d:'HIGH',ac:true},{n:'Cotton/Yarn',v:72,c:'#EF4444',d:'HIGH',ac:true},{n:'Technical Textile',v:55,c:'#F59E0B',d:'MED',ac:false},{n:'Leather/Footwear',v:70,c:'#EF4444',d:'HIGH',ac:true},{n:'Silk & Handicraft',v:65,c:'#F59E0B',d:'MED',ac:false},{n:'Pharmaceuticals',v:82,c:'#EF4444',d:'HIGH',ac:true},{n:'IT Services',v:22,c:'#22C55E',d:'LOW',ac:false}],gauge:76,confidence:87,verdict:'bear',output:`<div class="shed">Executive Summary</div><div class="ap"><strong>India's $16B textile & apparel export sector faces significant disruption</strong>, though relative to Vietnam (46% tariff) and Bangladesh (37%), India's 26% rate creates a <span class="hg2">surprising competitive opening</span>.</div><div class="shed">Tariff Impact by Category</div><div class="ap"><span class="hr">Man-made fibre apparel</span> ($3.1B exports) faces the starkest margin pressure. <span class="hg">Cotton apparel and home textiles</span> (~$4.2B) are more resilient with India's origin-story branding.</div><div class="shed">Competitive Repositioning</div><div class="ap">Tirupur cluster manufacturers report a <span class="hg2">12–15% uptick in inquiry volume</span> from US buyers. India could capture $800M–$1.2B in diverted orders from higher-tariff nations.</div><div class="shed">Pentagon Verdict</div><div class="ap">Net negative overall, but India is the relative winner in Asia. Execution on PLI is key.<br><span class="verd vbear">◆ MIXED — Relative Opportunity</span></div>`},
+  gdp:{keywords:['gdp','economy','growth','recession','macro','economic','india economy','rupee','inr'],sectors:[{n:'Export-GDP Linkage',v:65,c:'#F59E0B',d:'MED',ac:true},{n:'FDI Inflows',v:58,c:'#F59E0B',d:'MED',ac:false},{n:'INR Depreciation',v:55,c:'#F59E0B',d:'MED',ac:false},{n:'Pharma Exports',v:82,c:'#EF4444',d:'HIGH',ac:true},{n:'IT Services',v:22,c:'#22C55E',d:'LOW',ac:false},{n:'Domestic Demand',v:30,c:'#22C55E',d:'STABLE',ac:false},{n:'Textiles',v:75,c:'#EF4444',d:'HIGH',ac:true}],gauge:62,confidence:83,verdict:'neut',output:`<div class="shed">Executive Summary</div><div class="ap"><strong>India's macroeconomic resilience partially offsets tariff headwinds</strong>, but the cumulative effect trims FY26 GDP growth by an estimated <span class="hr">0.3–0.6 percentage points</span>.</div><div class="shed">GDP Impact Decomposition</div><div class="ap">Direct export drag accounts for <span class="hr">~−0.2pp</span> of the growth miss. China+1 FDI acceleration adds <span class="hg2">+0.1pp</span> via manufacturing capex.</div><div class="shed">Rupee Dynamics</div><div class="ap">INR weakened to <span class="nt">85.5–87.5 range</span>. Weaker rupee boosts IT exporters' INR realisation (+6–8%) while importing inflation into the domestic economy.</div><div class="shed">RBI Policy Response</div><div class="ap">RBI signals <span class="hg">two rate cuts (50bps) in FY26</span>. India's <span class="hg2">$2T+ domestic economy</span> remains the key shock absorber.</div><div class="shed">Pentagon Verdict</div><div class="ap">Manageable headwind. India remains the fastest-growing major economy even in the tariff scenario.<br><span class="verd vneut">◆ NEUTRAL — Managed Resilience</span></div>`},
+  china:{keywords:['china','chinese','sino','beijing','supply chain','manufacturing','decoupling','trade war'],sectors:[{n:'China Supply Chain',v:95,c:'#EF4444',d:'CRITICAL',ac:true},{n:'India MFG Gain',v:72,c:'#22C55E',d:'BULLISH',ac:false},{n:'Semiconductor',v:85,c:'#EF4444',d:'HIGH',ac:true},{n:'Rare Earth Risk',v:88,c:'#EF4444',d:'HIGH',ac:true},{n:'Vietnam Redirect',v:70,c:'#F59E0B',d:'MED',ac:false},{n:'Apple India Shift',v:80,c:'#22C55E',d:'BULLISH',ac:false},{n:'EV Supply Chain',v:78,c:'#EF4444',d:'HIGH',ac:true}],gauge:85,confidence:92,verdict:'bear',output:`<div class="shed">Executive Summary</div><div class="ap"><strong>The US-China trade confrontation at 145% tariff represents the most severe bilateral trade rupture since WWII.</strong> Global supply chains are in active restructuring — India is the single largest beneficiary of this realignment.</div><div class="shed">China's 145% Tariff Reality</div><div class="ap">At <span class="hr">145% effective tariff</span>, virtually all Chinese manufactured goods are economically non-viable for US import. China's <span class="hr">$440B annual US export base</span> faces existential disruption.</div><div class="shed">India's China+1 Dividend</div><div class="ap"><span class="hg2">$12.7B in announced FDI</span> for India manufacturing in 2025 alone — a 3-year high. PLI scheme sectors are direct beneficiaries.</div><div class="shed">Pentagon Verdict</div><div class="ap">Globally bearish; India is the clearest structural beneficiary of China decoupling.<br><span class="verd vbull">▲ BULLISH for India — Strategic Window</span></div>`},
+  winners:{keywords:['winner','benefit','gain','opportunity','who gains','advantage','beneficiary','loser','lose'],sectors:[{n:'India MFG',v:75,c:'#22C55E',d:'BULLISH',ac:false},{n:'Mexico Near-Shore',v:70,c:'#22C55E',d:'BULLISH',ac:false},{n:'Vietnam Textiles',v:40,c:'#F59E0B',d:'MED',ac:false},{n:'China Electronics',v:95,c:'#EF4444',d:'CRITICAL',ac:true},{n:'US Consumer',v:80,c:'#EF4444',d:'HIGH',ac:true},{n:'EU Autos',v:65,c:'#EF4444',d:'HIGH',ac:true},{n:'Brazil Commodities',v:25,c:'#22C55E',d:'LOW',ac:false}],gauge:55,confidence:89,verdict:'neut',output:`<div class="shed">Executive Summary</div><div class="ap"><strong>The 2025 US tariff regime is the largest peacetime redistribution of global trade flows in history.</strong> Winners and losers are clearly defined by tariff differential and supply chain position.</div><div class="shed">The Clear Winners</div><div class="ap"><span class="hg2">India (26%)</span>: Lowest tariff among major Asian manufacturers. <span class="hg2">Mexico</span>: USMCA framework keeps goods at 0–5%. <span class="hg2">Brazil</span>: Commodity exports face only 10% tariff.</div><div class="shed">The Clear Losers</div><div class="ap"><span class="hr">China (145%)</span>: $440B US export corridor at risk. <span class="hr">Vietnam (46%)</span>: hyper-concentrated electronics model disrupted. <span class="hr">US Consumers</span>: Goldman Sachs models a <span class="hr">1.5–2.0% CPI increase</span>.</div><div class="shed">Pentagon Verdict</div><div class="ap">India is the strategic winner. The US consumer and China are the clear losers.<br><span class="verd vneut">◆ MIXED — Structural Realignment</span></div>`},
+  inflation:{keywords:['inflation','price','consumer','cpi','cost','fed','interest rate','monetary','us inflation'],sectors:[{n:'US Consumer Goods',v:82,c:'#EF4444',d:'HIGH',ac:true},{n:'US Electronics',v:78,c:'#EF4444',d:'HIGH',ac:true},{n:'US Apparel',v:70,c:'#EF4444',d:'HIGH',ac:true},{n:'US Food/Agri',v:45,c:'#F59E0B',d:'MED',ac:false},{n:'US Industrial',v:65,c:'#F59E0B',d:'MED',ac:false},{n:'India IT Safe',v:22,c:'#22C55E',d:'LOW',ac:false},{n:'India Rupee',v:55,c:'#F59E0B',d:'MED',ac:false}],gauge:70,confidence:86,verdict:'bear',output:`<div class="shed">Executive Summary</div><div class="ap"><strong>US inflation faces a structurally inflationary shock from reciprocal tariffs</strong> — Goldman Sachs, JPMorgan, and the Fed's own models project <span class="hr">+1.5–2.2% CPI uplift</span> over 12–18 months.</div><div class="shed">Tariff Inflation Mechanics</div><div class="ap">Tariffs are <span class="hr">effectively consumption taxes on US importers</span>. The <span class="hr">CPI electronics sub-index alone</span> is modelled to rise 8–12%.</div><div class="shed">Fed's Dilemma</div><div class="ap">The Federal Reserve faces a <span class="nt">stagflationary trap</span>. Current Fed guidance signals a <span class="nt">"hold and watch"</span> posture with markets pricing two cuts by year-end.</div><div class="shed">Pentagon Verdict</div><div class="ap">US inflation will rise meaningfully. India faces manageable imported inflation with commodity offset.<br><span class="verd vbear">◆ BEARISH (US) / NEUTRAL (India)</span></div>`}
 };
-
-let sectorChart = new Chart(document.getElementById("sectorChart"), {
-  type: "bar",
-  data: {
-    labels: ["Steel","Tech","Agriculture","Pharma"],
-    datasets: [{
-      label: "Risk Score by Sector",
-      data: [40,80,30,65],
-      backgroundColor: ["#ff4d4d","#ffd700","#00ff9c","#00e5ff"],
-      borderRadius: 8,
-      hoverBackgroundColor: ["#ff6666","#ffed4e","#33ffb3","#33f2ff"]
-    }]
-  },
-  options: {
-    ...chartOptions,
-    scales: {
-      y: {
-        ...chartOptions.scales.y,
-        beginAtZero: true,
-        max: 100
-      },
-      x: chartOptions.scales.x
-    }
-  }
-});
-
-function analyzeTariff() {
-  showLoadingOverlay(1500);
-
-  const country = document.getElementById('countrySelect').value;
-  const sector = document.getElementById('sectorSelect').value;
-  const tariff = document.getElementById('tariffSlider').value;
-
-  // Update risk display
-  const riskScore = Math.floor(Math.random() * 40) + 40; // Random risk between 40-80
-  document.getElementById('riskDisplay').textContent = `Risk Score: ${riskScore}`;
-  document.getElementById('riskDisplay').style.color = riskScore > 70 ? '#ff4d4d' : riskScore > 50 ? '#ffd700' : '#00ff9c';
-
-  // Update chart data
-  const newData = [
-    Math.floor(Math.random() * 60) + 20,
-    Math.floor(Math.random() * 60) + 20,
-    Math.floor(Math.random() * 60) + 20,
-    Math.floor(Math.random() * 60) + 20
-  ];
-
-  sectorChart.data.datasets[0].data = newData;
-  sectorChart.update();
-
-  // Update analysis results
-  document.getElementById('analysisResults').innerHTML = `
-    <h4>Analysis for ${country} - ${sector} Sector</h4>
-    <p><strong>Tariff Rate:</strong> ${tariff}%</p>
-    <p><strong>Risk Assessment:</strong> ${riskScore > 70 ? 'High' : riskScore > 50 ? 'Medium' : 'Low'}</p>
-    <p><strong>Impact Estimate:</strong> $${(tariff * 1000000).toLocaleString()} in potential losses</p>
-    <p><strong>Recommendation:</strong> ${riskScore > 70 ? 'Consider alternative suppliers' : 'Monitor closely'}</p>
-  `;
+ 
+function matchTopic(q){
+  const ql=q.toLowerCase();const scores={};
+  for(const[k,v]of Object.entries(KB)){scores[k]=0;v.keywords.forEach(kw=>{if(ql.includes(kw))scores[k]+=kw.split(' ').length});}
+  const best=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0];
+  return(best&&best[1]>0)?best[0]:'default';
 }
-
+function buildGenericOutput(q){
+  return`<div class="shed">Pentagon Analysis</div><div class="ap"><strong>Analysis generated by Pentagon NLP engine.</strong> Query processed against 2025 US reciprocal tariff dataset and India trade exposure matrix.</div><div class="shed">US Tariff Context (2025)</div><div class="ap">The US imposed a <span class="hg">26% tariff on India</span>, <span class="hr">145% on China</span>, 20% on EU, 46% on Vietnam, and 24% on Japan under the reciprocal tariff framework (April 2025).</div><div class="shed">India-Specific Assessment</div><div class="ap">India's direct goods export exposure to the US is <span class="hg">~$77B annually</span>. The 26% tariff creates an estimated <span class="hr">$3–5B annual revenue headwind</span>. Services exports (IT, software) at <span class="hg2">$55B remain fully exempt</span>. Net GDP impact: <span class="nt">−0.3% to −0.6%</span>.</div><div class="shed">Pentagon Verdict</div><div class="ap">Nuanced: India is exposed but relatively advantaged vs. Asia peers.<br><span class="verd vneut">◆ NEUTRAL — Monitoring Required</span></div>`;
+}
+function renderOutput(html){const el=document.getElementById('oa');el.innerHTML=`<div class="oc">${html}</div>`;}
+function setLoad(v){document.getElementById('lf').style.width=v+'%'}
+function sq(v){document.getElementById('qi').value=v}
+ 
+const queryHistory=[];
+function addToHistory(q,verdict){
+  queryHistory.unshift({q,verdict});
+  const el=document.getElementById('hist');
+  if(queryHistory.length===1)el.innerHTML='';
+  const vtypes={bear:{cls:'bb',lbl:'BEAR'},bull:{cls:'bg',lbl:'BULL'},neut:{cls:'bn',lbl:'NEUT'}};
+  const vt=vtypes[verdict]||vtypes.neut;
+  const d=document.createElement('div');d.className='hitem';
+  d.innerHTML=`<span class="hq">${q}</span><span class="hvt ${vt.cls}">${vt.lbl}</span>`;
+  d.onclick=()=>sq(q);
+  el.insertBefore(d,el.firstChild);
+}
+ 
+async function runAnalysis(){
+  const query=document.getElementById('qi').value.trim();
+  if(!query)return;
+  const btn=document.getElementById('abtn');
+  btn.disabled=true;btn.textContent='⏳ Processing...';
+  document.getElementById('otag').textContent='PROCESSING';
+  document.getElementById('rtag').textContent='ANALYZING';
+  document.getElementById('oa').innerHTML='<div style="color:var(--gold);font-family:\'JetBrains Mono\',monospace;font-size:12px">Scanning tariff database...<span class="tcur"></span></div>';
+  setLoad(10);
+  await sleep(400);setLoad(30);
+  await sleep(300);setLoad(55);
+  const topic=matchTopic(query);
+  const kb=KB[topic];
+  await sleep(300);setLoad(75);
+  renderSectors(kb?kb.sectors:defaultSectors);
+  const gv=kb?kb.gauge:(60+Math.floor(Math.random()*20));
+  setGauge(gv);
+  const conf=kb?kb.confidence:(70+Math.floor(Math.random()*20));
+  document.getElementById('confb').style.width=conf+'%';
+  document.getElementById('confv').textContent=conf+'%';
+  await sleep(300);setLoad(95);
+  const html=kb?kb.output:buildGenericOutput(query);
+  renderOutput(html);
+  document.getElementById('otag').textContent='COMPLETE';
+  document.getElementById('rtag').textContent='COMPLETE';
+  addToHistory(query,kb?kb.verdict:'neut');
+  setLoad(100);
+  setTimeout(()=>setLoad(0),600);
+  btn.disabled=false;btn.textContent='▶ Analyze';
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+ 
+document.getElementById('qi').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();runAnalysis()}});
+document.getElementById('qi').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';});
 </script>
-
 </body>
 </html>

@@ -1,249 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>TariffScope - Simulation</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Simulation · Pentagon TIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: radial-gradient(circle at top, #0f172a, #020617);
-  color: white;
-  display: flex;
-}
-
-.sidebar {
-  width: 230px;
-  height: 100vh;
-  padding: 20px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(15px);
-  border-right: 1px solid rgba(255,255,255,0.1);
-}
-
-.sidebar h2 {
-  color: #00e5ff;
-  text-shadow: 0 0 10px #00e5ff;
-}
-
-.sidebar a {
-  display: block;
-  margin: 18px 0;
-  color: #aaa;
-  text-decoration: none;
-  transition: 0.3s;
-}
-
-.sidebar a:hover, .sidebar a.active {
-  color: #00e5ff;
-  transform: translateX(5px);
-}
-
-.main {
-  flex: 1;
-  padding: 30px;
-}
-
-.card {
-  padding: 20px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.1);
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 20px rgba(0,229,255,0.3);
-}
-
-.card h3 {
-  color: #00e5ff;
-}
-
-input, select {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #020617;
-  color: white;
-}
-
-button {
-  width: 100%;
-  margin-top: 15px;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(90deg, #00e5ff, #00ff9c);
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
-}
-
-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px #00e5ff;
-}
-
-.fade-in {
-  animation: fade 1s ease-in;
-}
-
-@keyframes fade {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.loading {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(0, 229, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #00e5ff;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.loading-content {
-  text-align: center;
-}
-
-.loading-content p {
-  margin-top: 20px;
-  color: #00e5ff;
-  font-weight: bold;
-}
-
-.simulation-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-top: 20px;
-}
-
+:root{--phi:1.618;--gold:#C9A84C;--obs:#080A0F;--s1:#0D1117;--s2:#131923;--s3:#1A2332;--bdr:rgba(201,168,76,0.15);--bdr2:rgba(201,168,76,0.4);--tx:#E8EBF0;--txd:#7A8A9E;--txm:#3D4F63;--grn:#22C55E;--red:#EF4444;--amb:#F59E0B;--blu:#3B82F6;--sp2:13px;--sp3:21px;--sp4:34px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--obs);color:var(--tx);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.025) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;padding:var(--sp2) var(--sp3);max-width:1400px;margin:0 auto}
+ 
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 var(--sp4);background:var(--s1);border:.5px solid var(--bdr2);border-radius:4px;margin-bottom:var(--sp3);height:56px;position:relative;overflow:hidden}
+.nav::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold),transparent)}
+.nav-brand{display:flex;align-items:center;gap:var(--sp2)}
+.nav-brand svg{width:32px;height:32px}
+.nav-bname{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.nav-bsub{font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.02em;line-height:1}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--txd);text-decoration:none;padding:7px 14px;border-radius:3px;border:.5px solid transparent;transition:all .15s;white-space:nowrap}
+.nl:hover{color:var(--gold);border-color:var(--bdr)}.nl.ac{color:var(--gold);background:rgba(201,168,76,0.08);border-color:var(--bdr2)}
+.nav-r{display:flex;align-items:center;gap:var(--sp2)}
+.lpill{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.08);border:.5px solid rgba(34,197,94,0.3);border-radius:50px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grn);letter-spacing:.1em}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:blink 1.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.clk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txd)}
+ 
+/* CARD */
+.card{background:var(--s1);border:.5px solid var(--bdr);border-radius:4px;overflow:hidden;transition:border-color .2s;margin-bottom:var(--sp3)}
+.card:hover{border-color:var(--bdr2)}
+.chdr{display:flex;align-items:center;justify-content:space-between;padding:var(--sp2) var(--sp3);border-bottom:.5px solid var(--bdr);background:var(--s2)}
+.ctitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--txd)}
+.ctag{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+.up{color:var(--grn)}.dn{color:var(--red)}.nt{color:var(--amb)}
+ 
+/* GRIDS */
+.mgrid{display:grid;grid-template-columns:360px 1fr;gap:var(--sp3);margin-bottom:var(--sp3)}
+.out-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp3);margin-bottom:var(--sp3)}
+ 
+/* SLIDERS */
+.slider-group{margin-bottom:var(--sp2)}
+.sg-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sg-lbl{font-size:11px;font-weight:600;color:var(--tx)}
+.sg-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700}
+.sg-flag{font-size:14px;margin-right:6px}
+input[type=range]{width:100%;appearance:none;-webkit-appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer;transition:opacity .15s}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--obs);box-shadow:0 0 6px rgba(201,168,76,.4)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--obs)}
+.sg-marks{display:flex;justify-content:space-between;margin-top:3px}
+.sg-mark{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txm)}
+ 
+/* OUTPUT METRICS */
+.omc{background:var(--s2);border:.5px solid var(--bdr);border-radius:3px;padding:var(--sp2) var(--sp3);position:relative;overflow:hidden;transition:all .3s}
+.omc-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:var(--txm);margin-bottom:6px}
+.omc-val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;transition:color .3s}
+.omc-sub{font-size:10px;color:var(--txm);margin-top:3px}
+.omc-bar{height:2px;position:absolute;bottom:0;left:0;right:0;transition:background .3s}
+ 
+/* SCENARIO PRESETS */
+.scenario-btns{display:flex;gap:8px;flex-wrap:wrap;padding:var(--sp2) var(--sp3) 0}
+.sbtn{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txd);background:var(--s2);border:.5px solid var(--bdr);border-radius:3px;padding:6px 14px;cursor:pointer;transition:all .15s}
+.sbtn:hover{border-color:var(--bdr2);color:var(--gold)}
+.sbtn.ac{background:rgba(201,168,76,0.1);border-color:var(--bdr2);color:var(--gold)}
+ 
+/* SECTOR IMPACT OUTPUT */
+.sio-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:.5px solid rgba(255,255,255,.03)}
+.sio-row:last-child{border-bottom:none}
+.sio-name{font-size:12px;font-weight:500;min-width:140px;color:var(--txd)}
+.sio-bw{flex:1;height:5px;background:var(--s3);border-radius:2px;overflow:hidden}
+.sio-b{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1),background .3s}
+.sio-v{font-family:'JetBrains Mono',monospace;font-size:11px;min-width:40px;text-align:right;transition:color .3s}
+.sio-d{font-family:'JetBrains Mono',monospace;font-size:10px;min-width:55px;text-align:right;transition:color .3s}
+ 
+/* CHART CANVAS */
+.chart-area{position:relative;padding:var(--sp3)}
+canvas{display:block}
+ 
+/* VERDICT */
+.verdict-box{margin:0 var(--sp3) var(--sp3);padding:14px 18px;border-radius:3px;display:flex;align-items:flex-start;gap:14px}
+.vb-icon{font-size:24px;flex-shrink:0}
+.vb-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.vb-body{font-size:12px;line-height:1.7;color:var(--txd)}
+ 
+/* COMPARISON TABLE */
+.ctbl{width:100%;border-collapse:collapse}
+.ctbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--txm);padding:8px 12px;text-align:left;border-bottom:.5px solid var(--bdr)}
+.ctbl td{padding:10px 12px;font-size:12px;border-bottom:.5px solid rgba(255,255,255,.03);font-family:'JetBrains Mono',monospace}
+.ctbl tr:hover td{background:var(--s2)}
+.ctbl tr:last-child td{border-bottom:none}
+.ctbl .sc-name{font-family:'Syne',sans-serif;font-weight:600;color:var(--tx)}
+ 
+/* FOOTER */
+.ftr{display:flex;align-items:center;justify-content:space-between;padding:var(--sp2) var(--sp4);background:var(--s1);border:.5px solid var(--bdr);border-radius:4px;margin-top:var(--sp3)}
+.fl,.fr{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txm);letter-spacing:.06em}
+.fr span{color:var(--gold)}
 </style>
 </head>
-
 <body>
-
-<div class="sidebar">
-  <h2>TariffScope</h2>
-  <a href="index.html">Dashboard</a>
-  <a href="analyzer.html">Analyzer</a>
-  <a href="simulation.html" class="active">Simulation</a>
-  <a href="map.html">Map</a>
-  <a href="insights.html">Insights</a>
-</div>
-
-<div class="main fade-in">
-
-  <h1>Simulation Lab</h1>
-
-  <div class="simulation-grid">
-    <div id="react-root-1"></div>
-    <div id="react-root-2"></div>
-    <div id="react-root-3"></div>
-    <div id="react-root-4"></div>
+<div class="app">
+ 
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 30,11.5 25,28 7,28 2,11.5" fill="none" stroke="#C9A84C" stroke-width="1.5"/><polygon points="16,7 25,13.5 21,24 11,24 7,13.5" fill="rgba(201,168,76,0.08)" stroke="#C9A84C" stroke-width=".75"/><circle cx="16" cy="16" r="2.5" fill="#C9A84C"/></svg>
+    <div><div class="nav-bname">Team Pentagon</div><div class="nav-bsub">Tariff Intelligence</div></div>
   </div>
-
+  <div class="nav-links">
+    <a href="dashboard.html" class="nl">Dashboard</a>
+    <a href="analyzer.html" class="nl">Analyzer</a>
+    <a href="insights.html" class="nl">Insights</a>
+    <a href="map.html" class="nl">Map</a>
+    <a href="simulation.html" class="nl ac">Simulation</a>
+  </div>
+  <div class="nav-r">
+    <div class="lpill"><div class="ldot"></div>MODEL ACTIVE</div>
+    <div class="clk" id="clk">--:--:--</div>
+  </div>
+</nav>
+ 
+<!-- SCENARIO PRESETS -->
+<div class="card">
+  <div class="chdr"><div class="ctitle">Tariff Scenario Engine</div><div class="ctag" id="sc-label">CUSTOM SCENARIO</div></div>
+  <div class="scenario-btns">
+    <div class="sbtn ac" id="sc-current" onclick="applyScenario('current',this)">◆ Current (Apr 2025)</div>
+    <div class="sbtn" id="sc-deal" onclick="applyScenario('deal',this)">↓ India–US Deal</div>
+    <div class="sbtn" id="sc-escalate" onclick="applyScenario('escalate',this)">↑ Full Escalation</div>
+    <div class="sbtn" id="sc-pre" onclick="applyScenario('pre',this)">← Pre-Tariff Baseline</div>
+    <div class="sbtn" id="sc-wto" onclick="applyScenario('wto',this)">⚖ WTO Rollback</div>
+  </div>
+  <div style="height:10px"></div>
 </div>
-
+ 
+<!-- SLIDERS + OUTPUT -->
+<div class="mgrid">
+  <div class="card" style="margin-bottom:0">
+    <div class="chdr"><div class="ctitle">Tariff Rate Inputs</div><div class="ctag">ADJUST TO MODEL</div></div>
+    <div style="padding:var(--sp3)">
+      <!-- India Tariff -->
+      <div class="slider-group">
+        <div class="sg-header">
+          <span class="sg-lbl"><span class="sg-flag">🇮🇳</span>India Tariff Rate</span>
+          <span class="sg-val nt" id="sv-india">26%</span>
+        </div>
+        <input type="range" id="sl-india" min="0" max="60" value="26" style="background:linear-gradient(90deg,#F59E0B 43.3%,#1A2332 43.3%)" oninput="updateSlider('india',this.value)">
+        <div class="sg-marks"><span class="sg-mark">0%</span><span class="sg-mark">15%</span><span class="sg-mark">30%</span><span class="sg-mark">45%</span><span class="sg-mark">60%</span></div>
+      </div>
+      <!-- China Tariff -->
+      <div class="slider-group">
+        <div class="sg-header">
+          <span class="sg-lbl"><span class="sg-flag">🇨🇳</span>China Tariff Rate</span>
+          <span class="sg-val dn" id="sv-china">145%</span>
+        </div>
+        <input type="range" id="sl-china" min="0" max="200" value="145" style="background:linear-gradient(90deg,#EF4444 72.5%,#1A2332 72.5%)" oninput="updateSlider('china',this.value)">
+        <div class="sg-marks"><span class="sg-mark">0%</span><span class="sg-mark">50%</span><span class="sg-mark">100%</span><span class="sg-mark">150%</span><span class="sg-mark">200%</span></div>
+      </div>
+      <!-- EU Tariff -->
+      <div class="slider-group">
+        <div class="sg-header">
+          <span class="sg-lbl"><span class="sg-flag">🇪🇺</span>EU Tariff Rate</span>
+          <span class="sg-val nt" id="sv-eu">20%</span>
+        </div>
+        <input type="range" id="sl-eu" min="0" max="60" value="20" style="background:linear-gradient(90deg,#F59E0B 33.3%,#1A2332 33.3%)" oninput="updateSlider('eu',this.value)">
+        <div class="sg-marks"><span class="sg-mark">0%</span><span class="sg-mark">15%</span><span class="sg-mark">30%</span><span class="sg-mark">45%</span><span class="sg-mark">60%</span></div>
+      </div>
+      <!-- India Deal Toggle -->
+      <div class="slider-group">
+        <div class="sg-header">
+          <span class="sg-lbl">🤝 Bilateral Deal Probability</span>
+          <span class="sg-val up" id="sv-deal">68%</span>
+        </div>
+        <input type="range" id="sl-deal" min="0" max="100" value="68" style="background:linear-gradient(90deg,#22C55E 68%,#1A2332 68%)" oninput="updateSlider('deal',this.value)">
+        <div class="sg-marks"><span class="sg-mark">0%</span><span class="sg-mark">25%</span><span class="sg-mark">50%</span><span class="sg-mark">75%</span><span class="sg-mark">100%</span></div>
+      </div>
+      <!-- China+1 FDI -->
+      <div class="slider-group">
+        <div class="sg-header">
+          <span class="sg-lbl">📈 China+1 FDI Multiplier</span>
+          <span class="sg-val up" id="sv-fdi">1.0x</span>
+        </div>
+        <input type="range" id="sl-fdi" min="0" max="30" value="10" style="background:linear-gradient(90deg,#22C55E 33.3%,#1A2332 33.3%)" oninput="updateSlider('fdi',this.value)">
+        <div class="sg-marks"><span class="sg-mark">0x</span><span class="sg-mark">0.75x</span><span class="sg-mark">1.5x</span><span class="sg-mark">2.25x</span><span class="sg-mark">3x</span></div>
+      </div>
+ 
+      <button onclick="runSimulation()" style="width:100%;background:var(--gold);color:var(--obs);border:none;border-radius:3px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:12px;cursor:pointer;margin-top:4px;transition:opacity .15s" id="run-btn">⚙ RUN SIMULATION</button>
+    </div>
+  </div>
+ 
+  <!-- RIGHT OUTPUT -->
+  <div style="display:flex;flex-direction:column;gap:var(--sp3)">
+    <!-- Output metrics -->
+    <div class="out-grid" style="margin-bottom:0">
+      <div class="omc"><div class="omc-bar" id="bar-gdp"></div><div class="omc-lbl">India GDP Impact</div><div class="omc-val" id="out-gdp">−0.4pp</div><div class="omc-sub">FY2025–26 estimate</div></div>
+      <div class="omc"><div class="omc-bar" id="bar-rev"></div><div class="omc-lbl">Revenue at Risk</div><div class="omc-val" id="out-rev">$3.8B</div><div class="omc-sub">Goods exports to US</div></div>
+      <div class="omc"><div class="omc-bar" id="bar-fdi"></div><div class="omc-lbl">FDI Inflow (China+1)</div><div class="omc-val" id="out-fdi">$12.7B</div><div class="omc-sub">Announced 2025</div></div>
+      <div class="omc"><div class="omc-bar" id="bar-inr"></div><div class="omc-lbl">INR Pressure</div><div class="omc-val" id="out-inr">85.8</div><div class="omc-sub">USD/INR estimate</div></div>
+      <div class="omc"><div class="omc-bar" id="bar-us-cpi"></div><div class="omc-lbl">US CPI Uplift</div><div class="omc-val" id="out-cpi">+1.8%</div><div class="omc-sub">12-month projection</div></div>
+      <div class="omc"><div class="omc-bar" id="bar-score"></div><div class="omc-lbl">India Risk Score</div><div class="omc-val" id="out-score">74</div><div class="omc-sub">0–100 composite</div></div>
+    </div>
+ 
+    <!-- Sector impact -->
+    <div class="card" style="margin-bottom:0">
+      <div class="chdr"><div class="ctitle">Sector Impact Under Scenario</div><div class="ctag" id="sim-tag">CURRENT SCENARIO</div></div>
+      <div style="padding:var(--sp2) var(--sp3)" id="sim-sectors"></div>
+    </div>
+  </div>
+</div>
+ 
+<!-- VERDICT + SCENARIO COMPARISON -->
+<div class="mgrid" style="grid-template-columns:1fr 1fr">
+  <div class="card" style="margin-bottom:0">
+    <div class="chdr"><div class="ctitle">Simulation Verdict</div><div class="ctag" id="verd-tag">AUTO</div></div>
+    <div class="verdict-box" id="verdict-box" style="background:rgba(245,158,11,0.05);border:.5px solid rgba(245,158,11,0.2)">
+      <div class="vb-icon">📊</div>
+      <div><div class="vb-title" style="color:var(--amb)">NEUTRAL — Managed Exposure</div><div class="vb-body">Under current tariff settings, India faces manageable headwinds. The 26% tariff creates direct revenue risk in pharma and textiles, but IT services remain fully exempt. China+1 FDI provides a meaningful offset. A bilateral deal within 12 months is the key variable — adjust the Deal Probability slider to model different outcomes.</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="chdr"><div class="ctitle">Scenario Comparison</div><div class="ctag">ALL SCENARIOS</div></div>
+    <div style="padding:0 var(--sp2)">
+      <table class="ctbl">
+        <thead><tr><th>Scenario</th><th>GDP Hit</th><th>Rev Risk</th><th>INR</th><th>Score</th></tr></thead>
+        <tbody>
+          <tr><td class="sc-name">Pre-Tariff</td><td style="color:var(--grn)">0.0pp</td><td style="color:var(--grn)">$0B</td><td style="color:var(--grn)">83.0</td><td style="color:var(--grn)">22</td></tr>
+          <tr style="background:rgba(201,168,76,0.04)"><td class="sc-name">◆ Current</td><td style="color:var(--amb)">−0.4pp</td><td style="color:var(--amb)">$3.8B</td><td style="color:var(--amb)">85.8</td><td style="color:var(--amb)">74</td></tr>
+          <tr><td class="sc-name">India–US Deal</td><td style="color:var(--grn)">−0.1pp</td><td style="color:var(--grn)">$1.2B</td><td style="color:var(--grn)">84.5</td><td style="color:var(--grn)">38</td></tr>
+          <tr><td class="sc-name">Full Escalation</td><td style="color:var(--red)">−1.2pp</td><td style="color:var(--red)">$11.4B</td><td style="color:var(--red)">91.0</td><td style="color:var(--red)">95</td></tr>
+          <tr><td class="sc-name">WTO Rollback</td><td style="color:var(--grn)">−0.05pp</td><td style="color:var(--grn)">$0.4B</td><td style="color:var(--grn)">83.8</td><td style="color:var(--grn)">18</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+ 
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="fl">Pentagon TIS · Simulation Engine · v2.4 · Models are estimates only</div>
+  <div class="fr">Built by <span>Team Pentagon</span> · All data modeled</div>
+</div>
+</div>
+ 
 <script>
-// Loading Animation
-function showLoadingOverlay(duration = 2000) {
-  const overlay = document.createElement('div');
-  overlay.className = 'loading-overlay';
-  overlay.innerHTML = '<div class="loading-content"><div class="loading"></div><p>Running Simulation...</p></div>';
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.remove(), duration);
+setInterval(()=>{const d=new Date();document.getElementById('clk').textContent=d.toUTCString().split(' ')[4]+' UTC';},1000);
+ 
+// State
+let state={india:26,china:145,eu:20,deal:68,fdi:10};
+ 
+const scenarios={
+  current:{india:26,china:145,eu:20,deal:68,fdi:10,label:'CURRENT (APR 2025)'},
+  deal:{india:10,china:145,eu:20,deal:95,fdi:18,label:'INDIA–US DEAL'},
+  escalate:{india:50,china:145,eu:35,deal:15,fdi:5,label:'FULL ESCALATION'},
+  pre:{india:3,china:20,eu:3,deal:0,fdi:5,label:'PRE-TARIFF BASELINE'},
+  wto:{india:0,china:25,eu:0,deal:100,fdi:8,label:'WTO ROLLBACK'},
+};
+ 
+function applyScenario(id,el){
+  const sc=scenarios[id];
+  state={...sc};
+  Object.keys(state).forEach(k=>{
+    const sl=document.getElementById('sl-'+k);
+    if(sl){sl.value=state[k];updateSliderUI(k,state[k]);}
+  });
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('ac'));
+  el.classList.add('ac');
+  document.getElementById('sc-label').textContent=sc.label;
+  runSimulation();
 }
-
-// React Simulation Components
-const e = React.createElement;
-
-function TariffSimulation({ country, initialTariff = 10 }) {
-  const [tariff, setTariff] = React.useState(initialTariff);
-  const [countryState, setCountry] = React.useState(country);
-  const price = (tariff * 1.5).toFixed(1);
-
-  const handleCountryChange = (e) => {
-    setCountry(e.target.value);
-    showLoadingOverlay(1000);
-  };
-
-  const handleTariffChange = (e) => {
-    setTariff(e.target.value);
-  };
-
-  return e("div", { className: "card fade-in" },
-    e("h3", null, `${countryState} Tariff Simulation`),
-    e("label", null, "Country:"),
-    e("select", {
-      value: countryState,
-      onChange: handleCountryChange,
-      style: { marginBottom: "15px" }
-    }, [
-      e("option", { key: "India", value: "India" }, "India"),
-      e("option", { key: "China", value: "China" }, "China"),
-      e("option", { key: "UK", value: "UK" }, "United Kingdom"),
-      e("option", { key: "Russia", value: "Russia" }, "Russia"),
-      e("option", { key: "Japan", value: "Japan" }, "Japan"),
-      e("option", { key: "Australia", value: "Australia" }, "Australia")
-    ]),
-    e("label", null, "Adjust Tariff:"),
-    e("input", {
-      type: "range",
-      min: 0,
-      max: 25,
-      value: tariff,
-      onChange: handleTariffChange,
-      style: { width: "100%", marginTop: "10px" }
-    }),
-    e("p", null, "Tariff: " + tariff + "%"),
-    e("p", null, "Price Increase: " + price + "%"),
-    e("p", null, "Primary Importers: China, India, Japan"),
-    e("p", { style: { color: tariff > 15 ? "#ff4d4d" : tariff > 10 ? "#ffd700" : "#00ff9c", fontWeight: "bold" } },
-      "Risk Level: " + (tariff > 15 ? "CRITICAL" : tariff > 10 ? "HIGH" : "MODERATE")
-    )
-  );
+ 
+function updateSlider(key,val){
+  state[key]=parseInt(val);
+  updateSliderUI(key,val);
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('ac'));
+  document.getElementById('sc-label').textContent='CUSTOM SCENARIO';
+  runSimulation();
 }
-
-// Render multiple simulation instances
-ReactDOM.createRoot(document.getElementById("react-root-1")).render(e(TariffSimulation, { country: "China" }));
-ReactDOM.createRoot(document.getElementById("react-root-2")).render(e(TariffSimulation, { country: "India", initialTariff: 15 }));
-ReactDOM.createRoot(document.getElementById("react-root-3")).render(e(TariffSimulation, { country: "United Kingdom", initialTariff: 8 }));
-ReactDOM.createRoot(document.getElementById("react-root-4")).render(e(TariffSimulation, { country: "Japan", initialTariff: 12 }));
-
+ 
+function updateSliderUI(key,val){
+  const v=parseInt(val);
+  const sl=document.getElementById('sl-'+key);
+  if(!sl)return;
+  const max=parseInt(sl.max);
+  const pct=(v/max*100).toFixed(1);
+  let color='#F59E0B';
+  if(key==='india'){
+    color=v<15?'#22C55E':v<35?'#F59E0B':'#EF4444';
+    const cls=v<15?'up':v<35?'nt':'dn';
+    document.getElementById('sv-india').textContent=v+'%';
+    document.getElementById('sv-india').className='sg-val '+cls;
+  } else if(key==='china'){
+    color=v<50?'#22C55E':v<100?'#F59E0B':'#EF4444';
+    document.getElementById('sv-china').textContent=v+'%';
+    document.getElementById('sv-china').className='sg-val '+(v>100?'dn':v>50?'nt':'up');
+  } else if(key==='eu'){
+    color=v<15?'#22C55E':v<30?'#F59E0B':'#EF4444';
+    document.getElementById('sv-eu').textContent=v+'%';
+    document.getElementById('sv-eu').className='sg-val '+(v>30?'dn':v>15?'nt':'up');
+  } else if(key==='deal'){
+    color=v>60?'#22C55E':v>30?'#F59E0B':'#EF4444';
+    document.getElementById('sv-deal').textContent=v+'%';
+    document.getElementById('sv-deal').className='sg-val '+(v>60?'up':v>30?'nt':'dn');
+  } else if(key==='fdi'){
+    color='#22C55E';
+    document.getElementById('sv-fdi').textContent=(v/10).toFixed(1)+'x';
+    document.getElementById('sv-fdi').className='sg-val up';
+  }
+  sl.style.background=`linear-gradient(90deg,${color} ${pct}%,#1A2332 ${pct}%)`;
+}
+ 
+function calcOutputs(){
+  const {india,china,deal,fdi}=state;
+  // GDP impact
+  const baseGDP=-((india-0)*0.012 + (india>20?(india-20)*0.004:0));
+  const dealOffset=deal/100*0.3;
+  const fdiOffset=(fdi/10)*0.1;
+  const gdp=(baseGDP+dealOffset+fdiOffset).toFixed(2);
+ 
+  // Revenue at risk (based on india tariff)
+  const revAtRisk=(india/100*14.5).toFixed(1);
+ 
+  // FDI
+  const fdiBn=(12.7*(fdi/10)).toFixed(1);
+ 
+  // INR
+  const inr=(83.0 + india*0.11 - deal*0.025 + (china>100?(china-100)*0.005:0)).toFixed(1);
+ 
+  // US CPI
+  const cpi=(0.5 + india*0.035 + (china>100?(china-100)*0.004:0)).toFixed(1);
+ 
+  // Risk score
+  const score=Math.min(100,Math.max(0,Math.round(india*1.5 - deal*0.4 + (china>100?(china-100)*0.05:0) - fdi*0.8 + 10)));
+ 
+  return{gdp:parseFloat(gdp),rev:parseFloat(revAtRisk),fdi:parseFloat(fdiBn),inr:parseFloat(inr),cpi:parseFloat(cpi),score};
+}
+ 
+const sectorBase=[
+  {n:'Pharmaceuticals',baseRisk:82,tariffSens:1.8},
+  {n:'Textiles & Apparel',baseRisk:75,tariffSens:1.5},
+  {n:'Auto Components',baseRisk:68,tariffSens:1.3},
+  {n:'Steel & Metal',baseRisk:55,tariffSens:1.1},
+  {n:'Electronics',baseRisk:60,tariffSens:1.2},
+  {n:'IT Services',baseRisk:12,tariffSens:0.1},
+  {n:'Agriculture',baseRisk:40,tariffSens:0.9},
+];
+ 
+function runSimulation(){
+  const o=calcOutputs();
+ 
+  // Update output metrics
+  const gdpEl=document.getElementById('out-gdp');
+  gdpEl.textContent=(o.gdp>=0?'+':'')+o.gdp+'pp';
+  gdpEl.className='omc-val '+(o.gdp<-0.5?'dn':o.gdp<-0.1?'nt':'up');
+  document.getElementById('bar-gdp').style.background=o.gdp<-0.5?'var(--red)':o.gdp<-0.1?'var(--amb)':'var(--grn)';
+ 
+  const revEl=document.getElementById('out-rev');
+  revEl.textContent='$'+o.rev+'B';
+  revEl.className='omc-val '+(o.rev>8?'dn':o.rev>3?'nt':'up');
+  document.getElementById('bar-rev').style.background=o.rev>8?'var(--red)':o.rev>3?'var(--amb)':'var(--grn)';
+ 
+  document.getElementById('out-fdi').textContent='$'+o.fdi+'B';
+  document.getElementById('bar-fdi').style.background='var(--grn)';
+ 
+  const inrEl=document.getElementById('out-inr');
+  inrEl.textContent=o.inr;
+  inrEl.className='omc-val '+(o.inr>88?'dn':o.inr>85?'nt':'up');
+  document.getElementById('bar-inr').style.background=o.inr>88?'var(--red)':o.inr>85?'var(--amb)':'var(--grn)';
+ 
+  const cpiEl=document.getElementById('out-cpi');
+  cpiEl.textContent='+'+o.cpi+'%';
+  cpiEl.className='omc-val '+(o.cpi>2?'dn':o.cpi>1?'nt':'up');
+  document.getElementById('bar-us-cpi').style.background=o.cpi>2?'var(--red)':o.cpi>1?'var(--amb)':'var(--grn)';
+ 
+  const scoreEl=document.getElementById('out-score');
+  scoreEl.textContent=o.score;
+  scoreEl.className='omc-val '+(o.score>70?'dn':o.score>40?'nt':'up');
+  document.getElementById('bar-score').style.background=o.score>70?'var(--red)':o.score>40?'var(--amb)':'var(--grn)';
+ 
+  // Sector impacts
+  const el=document.getElementById('sim-sectors');el.innerHTML='';
+  const dealFactor=1-state.deal/200;
+  sectorBase.forEach(s=>{
+    const risk=Math.min(100,Math.max(0,Math.round(s.baseRisk*(state.india/26)*s.tariffSens*dealFactor)));
+    const c=risk>75?'#EF4444':risk>50?'#F59E0B':risk>20?'#3B82F6':'#22C55E';
+    const d=risk>75?'CRITICAL':risk>50?'HIGH':risk>20?'MEDIUM':'LOW/EXEMPT';
+    const row=document.createElement('div');row.className='sio-row';
+    row.innerHTML=`<span class="sio-name">${s.n}</span><div class="sio-bw"><div class="sio-b" style="width:0%;background:${c}" data-w="${risk}"></div></div><span class="sio-v" style="color:${c}">${risk}</span><span class="sio-d" style="color:${c}">${d}</span>`;
+    el.appendChild(row);
+  });
+  setTimeout(()=>el.querySelectorAll('.sio-b').forEach(b=>b.style.width=b.dataset.w+'%'),100);
+ 
+  // Verdict
+  const vb=document.getElementById('verdict-box');
+  const vtag=document.getElementById('verd-tag');
+  if(o.score>75){
+    vb.style.cssText='margin:0 var(--sp3) var(--sp3);padding:14px 18px;border-radius:3px;display:flex;align-items:flex-start;gap:14px;background:rgba(239,68,68,0.06);border:.5px solid rgba(239,68,68,0.25)';
+    vb.innerHTML=`<div class="vb-icon">🔴</div><div><div class="vb-title" style="color:var(--red)">BEARISH — High Stress Scenario</div><div class="vb-body">Under these settings, India faces severe economic stress. The high tariff rate with low deal probability creates a compound headwind: pharma and textiles in crisis, INR under significant pressure, and GDP growth threatened. Immediate diplomatic intervention needed.</div></div>`;
+    vtag.textContent='BEARISH';
+  } else if(o.score<35){
+    vb.style.cssText='margin:0 var(--sp3) var(--sp3);padding:14px 18px;border-radius:3px;display:flex;align-items:flex-start;gap:14px;background:rgba(34,197,94,0.06);border:.5px solid rgba(34,197,94,0.25)';
+    vb.innerHTML=`<div class="vb-icon">🟢</div><div><div class="vb-title" style="color:var(--grn)">BULLISH — Favourable Scenario</div><div class="vb-body">Under these settings, India is in a strong position. Low tariff rates and/or a successful bilateral deal dramatically reduce exposure. IT services continue growing, FDI is accelerating, and the Rupee is stable. India is the clear beneficiary of trade realignment.</div></div>`;
+    vtag.textContent='BULLISH';
+  } else {
+    vb.style.cssText='margin:0 var(--sp3) var(--sp3);padding:14px 18px;border-radius:3px;display:flex;align-items:flex-start;gap:14px;background:rgba(245,158,11,0.05);border:.5px solid rgba(245,158,11,0.2)';
+    vb.innerHTML=`<div class="vb-icon">📊</div><div><div class="vb-title" style="color:var(--amb)">NEUTRAL — Managed Exposure</div><div class="vb-body">Under current settings, India faces manageable headwinds. The tariff creates direct revenue risk in pharma and textiles, but IT services remain fully exempt and China+1 FDI provides a meaningful offset. A bilateral deal is the key variable for improvement.</div></div>`;
+    vtag.textContent='NEUTRAL';
+  }
+ 
+  document.getElementById('sim-tag').textContent=document.getElementById('sc-label').textContent;
+}
+ 
+// Initialize UI
+Object.keys(state).forEach(k=>updateSliderUI(k,state[k]));
+runSimulation();
 </script>
-
 </body>
 </html>
